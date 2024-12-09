@@ -21,6 +21,10 @@ st.markdown("""
         .e1fqkh3o4{
             margin-top: 30px;
         }
+
+        .st-emotion-cache-bjn8wh.eczjsme17{
+        display: none;        
+        }
         
         .justified-text {
         text-align: justify;
