@@ -4,7 +4,7 @@ from streamlit_option_menu import option_menu
 # from stmol import showmol
 
 st.set_page_config(
-    page_title="My Web App",
+    page_title="HGEN663",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -33,6 +33,7 @@ st.markdown("""
         line-height: 1.6; /* Line height for better readability */
         }
         p {
+        text-wrap: wrap;
         font-size: 20px;
         }
         .hr-header {

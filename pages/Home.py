@@ -5,14 +5,13 @@ import py3Dmol
 from stmol import showmol
 
 
-st.image("images/home-genomics.jpg", use_column_width=True)
+st.image("images/home-genomics.jpg", use_container_width=True)
 
 st.markdown("# Welcome to HGEN663")
 
-st.markdown(
-"""
+st.html("""<p class='justified-text'>
 This website is designed to support your journey through HGEN663 by providing access to well-organized, practical coding resources. Whether you're a beginner or looking to sharpen your programming skills in biological data analysis, you'll find materials tailored to our class topics.
-""")
+</p>""")
 
 # st.markdown("##### ")
 st.markdown("# Instructor")
