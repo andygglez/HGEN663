@@ -11,39 +11,47 @@ with col2:
     with st.container(border=True):
         st.markdown("Log in using `ssh`")
 
-        st.code("ssh user@workshop2021a.vhost37.genap.ca", language="bash")
+        st.code("ssh <username>@hgen633.calculquebec.cloud", language="bash")
     st.divider()
     #############################################################################################
 
     with st.container(border=True):
-        st.markdown("#### Set up a work directory at ~/projects/lec1")
+        st.markdown("#### Set up a work directory at /project/def-sponsor00/$USER")
+
+        st.markdown("Navigate to /project/def-sponsor00/$USER")
+        st.code("cd /project/def-sponsor00/$USER", language="bash")
+
         st.markdown("Create a directory with `mkdir`")
+        st.code("mkdir -p lec1", language="bash")
+        st.code("cd lec1", language="bash")
 
-        st.code("mkdir -p ~/projects/lec1", language="bash")
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
-        st.markdown("#### Copy the files for today's class from /home/hgen_share/lec1")
-        st.markdown("Go to the created directory with `cd`")
+    # with st.container(border=True):
+    #     st.markdown("#### Look at the files for today's class from /home/hgen_share/lec1")
+    #     st.markdown("Go to the created directory with `cd`")
 
-        st.code("cd ~/projects/lec1", language="bash")
+    #     st.code("ll ~/projects/lec1", language="bash")
 
-        st.markdown("Copy over files with `cp`")
-        st.code("cp -R /home/hgen_share/lec1/* ./", language="bash")
-    st.divider()
+    #     # st.markdown("Copy over files with `cp`")
+    #     # st.code("cp -R /project/def-sponsor00/hgen_share/lec1/* ./", language="bash")
+    # st.divider()
     #############################################################################################
 
     with st.container(border=True):
-        st.markdown("#### Take a look at the files you copied")
+        st.markdown("#### Take a look at the files")
+        
         st.markdown("Show the list of files with `ls`")
+        st.code("ls /project/def-sponsor00/hgen_share/lec1/", language="bash")
 
-        st.code("ls -lh", language="bash")
+        st.markdown("Assign the folder to a variable")
+        st.code("data=/project/def-sponsor00/hgen_share/lec1", language="bash")
 
         st.markdown("Inspect the first few lines of ex* files with `head`")
         st.code("""
-        head ex1.fa
-        head ex2.fq
+        head ${data}/ex1.fa
+        head ${data}/ex2.fq
         """, language="bash")
     st.divider()
 
@@ -52,16 +60,16 @@ with col2:
         st.markdown("#### Convert `ex2.fq` to the FASTA format")
         
         st.markdown("Inspect the seqtk module with `module spider`")
-        st.code("module spider seqtk/1.3", language="bash")
+        st.code("module spider seqtk/1.4", language="bash")
 
         st.markdown("Load the seqtk module with `module load`")
-        st.code("module spider seqtk/1.3", language="bash")
+        st.code("module load seqtk/1.4", language="bash")
 
         st.markdown("Inspect loaded modules with `module list`")
         st.code("module list", language="bash")
 
         st.markdown("Convert FASTQ to FASTA with `seqtk seq`")
-        st.code("seqtk seq -a ex2.fq > ex2.fa", language="bash")
+        st.code("seqtk seq -a ${data}/ex2.fq > ex2.fa", language="bash")
 
         st.markdown("Inspect the first few lines of ex2.fa with `head`")
         st.code("head ex2.fa", language="bash")
@@ -69,49 +77,32 @@ with col2:
     #############################################################################################
 
     with st.container(border=True):
-        st.markdown("#### Set up a conda environment")
-        st.markdown("Export conda environment")
-
-        st.code("""
-        export PATH="/home/hgen_share/Anaconda/bin:$PATH" 
-        export PATH="/home/hgen_share/Anaconda/envs/lec1/bin:$PATH"
-        """, language="bash")
-
-        st.markdown("Check environment is in your path")
-        st.code("echo $PATH", language="bash")
-
-        st.markdown("More information on how to set up Anaconda environment [here](https://docs.conda.io/projects/conda/en/stable/index.html)")
-    st.divider()
-    #############################################################################################
-
-    with st.container(border=True):
         st.markdown("#### Run FastQC on `ex2.fq` and compare with [another example](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/bad_sequence_fastqc.html)")
-        st.markdown("Export conda environment")
+        st.code("module load fastqc/0.12.1")
 
         st.markdown("Perform quality control analysis on ex2.fq with fastqc")
+        st.code("cp ${data}/ex2.fq .", language="bash")
         st.code("fastqc ex2.fq", language="bash")
         
         st.markdown("Download results to your local computer using `scp`")
-        st.code("scp user@workshop2021a.vhost37.genap.ca:/directory/fastqc_results.html local_directory", language="bash")
+        st.code("scp <username>@hgen633.calculquebec.cloud:/directory/fastqc_results.html local_directory", language="bash")
 
     st.divider()
     #############################################################################################
 
     with st.container(border=True):
         st.markdown("#### Align the first 10 and then 1000 sequences of `ex2.fa` using BLAT")
-        st.markdown("Inspect the reference assembly")
-        st.code("head /home/hgen_share/bwa/hg19.fa", language="bash")
 
-        st.markdown("Assign the reference file to a variable for simplicity")
-        st.code("ref=/home/hgen_share/bwa", language="bash")
+        st.markdown("Load the seqkit module")
+        st.code("module load seqkit/2.5.1")
 
         st.markdown("Subset the first 10 and then 1000 sequences of `ex2.fa` using `seqkit`")
         st.code("seqkit head -n 10 ex2.fa > sub_ex2.fa", language="bash")
 
         st.markdown("Time the alignment against hg19 with blat using a command of the form")
         st.code("""
-        module load blat/3.5
-        time blat $ref/hg19.fa sub_ex2.fa OUTPUT.psl
+        module load blat/3.7
+        time blat ${data}/hg19_ref/hg19.fa sub_ex2.fa OUTPUT.psl
         """, language="bash")
 
         st.markdown("More information on the .psl format found [here](https://genomebrowser.wustl.edu/goldenPath/help/blatSpec.html)")
@@ -119,12 +110,14 @@ with col2:
 
     #############################################################################################
     
+    st.markdown("#####################################################################################################")
+
     with st.container(border=True):
         st.markdown("#### Align `ex2.fq` using BWA")
         st.markdown("Align against the same reference with `bwa mem`")
         st.code("""
         module load bwa/0.7.17
-        bwa mem $ref/hg19.fa ex2.fq > ex2.sam
+        bwa mem ${data}/hg19_ref/hg19.fa ${data}/ex2.fq > ex2.sam
         """, language="bash")
 
         st.markdown("How many reads are there in `ex2.fq`? How much faster is BWA MEM compared to BLAT?")
@@ -148,7 +141,6 @@ with col2:
 
         st.markdown("Take a look at the `*.bam` file with `head`")
         st.code("head ex2.sorted.bam", language="bash")
-
 
         st.markdown("Compare the size difference after compression with `ls`")
         st.code("ls -lh ex2.*am", language="bash")

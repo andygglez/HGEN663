@@ -1,6 +1,4 @@
 
-
-
 import py3Dmol
 from stmol import showmol
 

@@ -58,13 +58,18 @@ lectures = ["Lecture "+str(i) for i in range(1,13)]
 options = ["HGEN663"]
 options.extend(lectures)
 options.append("---")
+options.append("External Resources")
+options.append("---")
 
 icons = ['house']
 icons.extend([str(i)+"-square" for i in range(1, len(lectures)+1)])
 
 with st.sidebar:
     page_selected = option_menu(None, 
-        options=options, icons=['house'],default_index=0)
+        options=options, icons=['house',"","","","",
+                                        "","","",""
+                                        "","","","",
+                                        "","","box-arrow-up-right"],default_index=0)
 
 if page_selected == "HGEN663":
     exec(open("pages/Home.py").read())
@@ -104,3 +109,6 @@ if page_selected == "Lecture 11":
 
 if page_selected == "Lecture 12":
     exec(open('pages/lec12.py').read())
+
+if page_selected == "External Resources":
+    exec(open('pages/external.resources.py').read())

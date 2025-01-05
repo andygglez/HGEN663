@@ -8,18 +8,15 @@ with col2:
     #############################################################################################
 
     with st.container(border=True):
-            st.markdown("#### Copy the files for today's class from `/home/hgen_share/lec2`")
-            st.markdown("Set up directory and copy over files")
+            st.markdown("#### Look at the files for today's class from `/project/def-sponsor00/hgen_share/lec2`")
+            st.code("ls /project/def-sponsor00/hgen_share/lec2")
 
-    st.divider()
-    #############################################################################################
+            st.markdown("Store the location in a variable")
+            st.code("data=/project/def-sponsor00/hgen_share/lec2")
 
-    with st.container(border=True):
-            st.markdown("#### Compare `HG002.sorted.bam` with what you generated last week")
-            st.markdown("**Remember to load modules**")
-            st.markdown("Index the `bam` file")
-            st.markdown("Run `samtools flagstat` on both files")
-            st.markdown("What are some of the similarities and differences?")
+            st.markdown("Create a directory in your folder")
+            st.code("""mkdir -p /project/def-sponsor00/$USER/lec2
+                       cd /project/def-sponsor00/$USER/lec2""")
 
     st.divider()
     #############################################################################################
@@ -29,7 +26,9 @@ with col2:
             st.markdown("Download the `bam` file to your local computer as previously shown using `scp`")
             st.markdown("Check what assembly it was aligned to")
 
-            st.code("samtools view -H HG002.sorted.bam | tail -n 3", language="bash")
+            st.code("""
+            module load samtools/1.20
+            samtools view -H ${data}/HG002.sorted.bam | tail -n 3""", language="bash")
 
             st.markdown("Open it in IGV with the appropriate reference around 20:43200000-43300000")
     st.divider()
