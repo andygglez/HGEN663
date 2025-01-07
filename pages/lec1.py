@@ -96,7 +96,7 @@ with col2:
         st.markdown("Load the seqkit module")
         st.code("module load seqkit/2.5.1")
 
-        st.markdown("Subset the first 10 and then 1000 sequences of `ex2.fa` using `seqkit`")
+        st.markdown("Subset the first 10 sequences of `ex2.fa` using `seqkit`")
         st.code("seqkit head -n 10 ex2.fa > sub_ex2.fa", language="bash")
 
         st.markdown("Time the alignment against hg19 with blat using a command of the form")
@@ -109,8 +109,6 @@ with col2:
     st.divider()
 
     #############################################################################################
-    
-    st.markdown("#####################################################################################################")
 
     with st.container(border=True):
         st.markdown("#### Align `ex2.fq` using BWA")
@@ -120,12 +118,13 @@ with col2:
         bwa mem ${data}/hg19_ref/hg19.fa ${data}/ex2.fq > ex2.sam
         """, language="bash")
 
-        st.markdown("How many reads are there in `ex2.fq`? How much faster is BWA MEM compared to BLAT?")
+        # st.markdown("How many reads are there in `ex2.fq`? How much faster is BWA MEM compared to BLAT?")
         st.markdown("Take a look at the `*.sam` file with `less`")
         st.code("less ex2.sam", language="bash")
 
         st.markdown("Calculate summary statistics with `samtools flagstat`")
         st.code("""
+        module load StdEnv/2020
         module load samtools/1.16.1
         samtools flagstat ex2.sam
         """, language="bash")
@@ -135,7 +134,7 @@ with col2:
     #############################################################################################
     
     with st.container(border=True):
-        st.markdown("#### Convert `ex2.sam` to the BAM format and index it")
+        st.markdown("#### Convert `ex2.sam` to the BAM format")
         st.markdown("Sort and compress in one go with `samtools sort`")
         st.code("samtools sort ex2.sam > ex2.sorted.bam ", language="bash")
 
@@ -145,6 +144,6 @@ with col2:
         st.markdown("Compare the size difference after compression with `ls`")
         st.code("ls -lh ex2.*am", language="bash")
 
-        st.markdown("Generate an index file with samtools index")
-        st.code("samtools index ex2.sorted.bam", language="bash")
+        # st.markdown("Generate an index file with samtools index")
+        # st.code("samtools index ex2.sorted.bam", language="bash")
     st.divider()
