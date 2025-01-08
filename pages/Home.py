@@ -3,7 +3,7 @@ import py3Dmol
 from stmol import showmol
 
 
-st.image("images/home-genomics.jpg", use_column_width=True)
+st.image("images/home-genomics.jpg", use_container_width=True)
 
 st.markdown("# Welcome to HGEN663")
 
