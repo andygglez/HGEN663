@@ -1,5 +1,5 @@
 
-st.image("images/home-genomics.jpg", use_column_width=True)
+st.image("images/home-genomics.jpg", use_container_width=True)
 
 st.markdown("# External resources")
 
@@ -31,22 +31,25 @@ with col3:
 with col4:
     st.video("https://www.youtube.com/watch?v=xHyclzQiay4&t=1504s")
 
+
+
 st.markdown("## Lecture 2")
+col6,col7,col8,col9,col10 = st.columns(5)
 
-with col1:
-    pass
+with col6:
+    st.video("https://www.youtube.com/watch?v=sM9cQPWwvn4&list=PLjiXAZO27elDHGlQwfd06r7coiFtpPkvI&index=1&t=542s&pp=iAQB")
 
-with col2:
-    pass
+with col7:
+    st.video("https://www.youtube.com/watch?v=iHkiQvxyr5c&t=2397s&pp=ygUdZ2F0ayB2YXJpYW50IGNhbGxpbmcgdHV0b3JpYWw%3D")
 
-with col3:
-    pass
+with col8:
+    st.video("https://www.youtube.com/watch?v=v5WtC7IOf4U&pp=ygUdZ2F0ayB2YXJpYW50IGNhbGxpbmcgdHV0b3JpYWw%3D")
 
-with col4:
-    pass
+with col9:
+    st.video("https://www.youtube.com/watch?v=xLm3Le0rfYQ&t=714s&pp=ygUdZ2F0ayB2YXJpYW50IGNhbGxpbmcgdHV0b3JpYWw%3D")
 
-with col5:
-    pass
+with col10:
+    st.video("https://www.youtube.com/watch?v=zMWJSqKY4O8&pp=ygUdZ2F0ayB2YXJpYW50IGNhbGxpbmcgdHV0b3JpYWw%3D")
 
 
 st.markdown("## Lecture 3")

@@ -33,9 +33,9 @@ with col2:
             module load StdEnv/2023
             module load samtools/1.20
             
-            samtools view -H ${data}/HG002.sorted.bam | tail -n 3""", language="bash")
+            samtools view -H ${data}/HG002.sorted.bam | tail -n 4""", language="bash")
 
-            st.markdown("Open it in IGV with the appropriate reference around 20:43200000-43300000") #####################################3
+            st.markdown("Open it in IGV with the appropriate reference around chr20:43200000-43300000") #####################################3
     st.divider()
     #############################################################################################
 
@@ -140,11 +140,6 @@ with col2:
                     METRICS_FILE=HG002.sorted.dup.metrics
             """, language="bash")
 
-            st.markdown("Check the results")
-            st.code("""
-            grep 'METRICS CLASS' -A 2 HG002.sorted.dup.metrics | column -t | less -S
-            """, language="bash")
-
     st.divider()
     #############################################################################################
 
@@ -153,7 +148,7 @@ with col2:
             
             st.markdown("Establish a set of covariates for correction based on context and known SNPs with `BaseRecalibrator`")
 
-            st.markdown("Use GATK in this case")
+            st.markdown("Use GATK4 in this case")
 
             st.code("""
             module load StdEnv/2023
