@@ -15,8 +15,11 @@ with col2:
             st.code("data=/project/def-sponsor00/hgen_share/lec2")
 
             st.markdown("Create a directory in your folder")
-            st.code("""mkdir -p /project/def-sponsor00/$USER/lec2
-                       cd /project/def-sponsor00/$USER/lec2""")
+            st.code("""
+            mkdir -p /project/def-sponsor00/$USER/lec2
+            cd /project/def-sponsor00/$USER/lec2
+            cp ${data}/HG002.sorted.bam .
+            """)
 
     st.divider()
     #############################################################################################
@@ -27,10 +30,12 @@ with col2:
             st.markdown("Check what assembly it was aligned to")
 
             st.code("""
+            module load StdEnv/2023
             module load samtools/1.20
+            
             samtools view -H ${data}/HG002.sorted.bam | tail -n 3""", language="bash")
 
-            st.markdown("Open it in IGV with the appropriate reference around 20:43200000-43300000")
+            st.markdown("Open it in IGV with the appropriate reference around 20:43200000-43300000") #####################################3
     st.divider()
     #############################################################################################
 
@@ -38,37 +43,34 @@ with col2:
             st.markdown("#### Re-align `HG002.sorted.bam` around susceptible regions with GATK")
             st.markdown("Assign paths to variables for simplicity")
             st.code("""
-            REF=/home/hgen_share/bwa
-            VCF=/home/hgen_share/vcf/b37
-            PICARD_JAR=/home/hgen_share/utils/picard.jar
-            GATK_JAR=/home/hgen_share/utils/GenomeAnalysisTK-3.8.1.jar
-            export PATH="/home/hgen_share/utils/gatk-4.1.9.0:$PATH"
-            module load StdEnv/2020 samtools/1.16
-            module load nixpkgs/16.09 java/1.8.0_192
+            GATK_JAR=/project/def-sponsor00/hgen_share/utils/GenomeAnalysisTK-3.8.1.jar
+            PICARD_JAR=/project/def-sponsor00/hgen_share/utils/picard.jar
+
+            data=/project/def-sponsor00/hgen_share/lec2
+            REF=$data/hg19/hg19.chr20.fa
+
+            module load StdEnv/2020
+            module load java/1.8.0_192
             """, language="bash")
 
             st.markdown("Find regions with indels and dense in SNPs with `RealignerTargetCreator`")
             st.code("""
             java -Xmx4G -jar $GATK_JAR \\
-                -T RealignerTargetCreator \\
-                -R $REF/b37.fa \\
-                -L 20:43200000-43300000 \\
-                --known $VCF/dbSNP.vcf \\
-                --known $VCF/Mills.indels.vcf \\
-                -o realign.intervals \\
-                -I HG002.sorted.bam
+                    -T RealignerTargetCreator \\
+                    -R $REF \\
+                    -L chr20:43200000-43300000 \\
+                    -o realign.intervals \\
+                    -I $data/HG002.sorted.bam
             """, language="bash")
 
             st.markdown("Re-align around the identified regions with `IndelRealigner`")
             st.code("""
             java -Xmx4G -jar $GATK_JAR \\
-                -T IndelRealigner \\
-                -R $REF/b37.fa \\
-                -known $VCF/dbSNP.vcf \\
-                -known $VCF/Mills.indels.vcf \\
-                -targetIntervals realign.intervals \\
-                -o HG002.realigned.sorted.bam \\
-                -I HG002.sorted.bam
+                    -T IndelRealigner \\
+                    -R $REF \\
+                    -targetIntervals realign.intervals \\
+                    -o HG002.realigned.sorted.bam \\
+                    -I $data/HG002.sorted.bam
             """, language="bash")
 
     st.divider()
@@ -78,43 +80,50 @@ with col2:
             st.markdown("#### Visualize re-aligned reads in IGV")
             
             st.markdown("""Retrieve re-aligned reads based with "OC" tag ("original CIGAR", implying that a new CIGAR string was generated)""")
-            st.code("samtools view HG002.realigned.sorted.bam | grep 'OC' | cut -f1 | sort > oc.txt", language="bash")
+            st.code("""
+            module load StdEnv/2023
+            module load samtools/1.20
 
-            st.markdown("Sort reads by name using `picard SortSam` to allow efficient searching")
+            samtools view HG002.realigned.sorted.bam | grep 'OC' | cut -f1 | sort > oc.txt
+            """, language="bash")
+
+            st.markdown("Sort reads by name using `picard SortSam` to allow efficient searching and subset reads with name matching those found in `oc.txt` with `picard FilterSamReads`")
+
+            st.code("""
+            module load StdEnv/2020
+            module load java/1.8.0_192
+            """)
+
             st.code("""
             java -Xmx4G -jar $PICARD_JAR SortSam \\
-                -I HG002.realigned.sorted.bam \\
-                -O HG002.realigned.qs.bam \\
-                -SO queryname
-            
-            java -Xmx2g -jar $PICARD_JAR SortSam \\
-                -I HG002.sorted.bam \\
-                -O HG002.qs.bam \\
-                -SO queryname
-            """, language="bash")
+                    I=HG002.realigned.sorted.bam \\
+                    O=HG002.realigned.qs.bam \\
+                    SORT_ORDER=queryname
 
-            st.markdown("Subset reads with name matching those found in `oc.txt` with `picard FilterSamReads`")
-            st.code("""
             java -Xmx4G -jar $PICARD_JAR FilterSamReads \\
-                -I HG002.realigned.qs.bam \\
-                -O HG002.new.bam \\
-                --FILTER includeReadList \\
-                -RLF oc.txt \\
-                -SO coordinate \\
-                -CREATE_INDEX true
-            
-            java -Xmx2g -jar $PICARD_JAR FilterSamReads \\
-                -I HG002.qs.bam \\
-                -O HG002.old.bam \\
-                --FILTER includeReadList \\
-                -RLF oc.txt \\
-                -SO coordinate \\
-                -CREATE_INDEX true
-            """, language="bash")
+                    I=HG002.realigned.qs.bam \\
+                    O=HG002.new.bam \\
+                    FILTER=includeReadList \\
+                    RLF=oc.txt \\
+                    SORT_ORDER=coordinate \\
+                    CREATE_INDEX=true
 
+            java -Xmx4G -jar $PICARD_JAR SortSam \\
+                    I=$data/HG002.sorted.bam \\
+                    O=HG002.qs.bam \\
+                    SORT_ORDER=queryname
+
+            java -Xmx4G -jar $PICARD_JAR FilterSamReads \\
+                    I=HG002.qs.bam \\
+                    O=HG002.old.bam \\
+                    FILTER=includeReadList \\
+                    RLF=oc.txt \\
+                    SORT_ORDER=coordinate \\
+                    CREATE_INDEX=true
+            """, language="bash")
 
             st.markdown("Download the new and old `bam` files. What else must you download with your `bam` file for visualization?")
-            st.markdown("Go to 20:43,257,030-43,257,326 to see an obvious example.")
+            st.markdown("Go to chr20:43,257,014-43,257,372 to see an obvious example.")
     st.divider()
     #############################################################################################
 
@@ -124,11 +133,11 @@ with col2:
             st.markdown("Mark PCR duplicate reads with `MarkDuplicates` ")
             st.code("""
             java -Xmx4G -jar ${PICARD_JAR} MarkDuplicates \\
-                -REMOVE_DUPLICATES false \\
-                -CREATE_INDEX true \\
-                -I HG002.realigned.sorted.bam \\
-                -O HG002.sorted.dup.bam \\
-                -M HG002.sorted.dup.metrics
+                    REMOVE_DUPLICATES=false \\
+                    CREATE_INDEX=true \\
+                    I=HG002.realigned.sorted.bam \\
+                    O=HG002.sorted.dup.bam \\
+                    METRICS_FILE=HG002.sorted.dup.metrics
             """, language="bash")
 
             st.markdown("Check the results")
@@ -143,22 +152,28 @@ with col2:
             st.markdown("#### Apply base quality score recalibration with GATK")
             
             st.markdown("Establish a set of covariates for correction based on context and known SNPs with `BaseRecalibrator`")
+
+            st.markdown("Use GATK in this case")
+
             st.code("""
-            gatk --java-options "-Xmx4G" \
-                BaseRecalibrator \\
-                -R $REF/b37.fa \\
-                -known-sites $VCF/dbSNP.vcf \\
-                -known-sites $VCF/Mills.indels.vcf \\
-                -L 20:43200000-43300000 \\
+            module load StdEnv/2023
+            module load gatk/4.4.0.0
+            """)
+
+            st.code("""
+            gatk --java-options "-Xmx4G" BaseRecalibrator \\
+                -R $REF \\
+                -known-sites $data/dbSNP.vcf \\
+                -known-sites $data/Mills.indels.vcf \\
+                -L chr20:43200000-43300000 \\
                 -O HG002.sorted.dup.recalibration_report.grp \\
                 -I HG002.sorted.dup.bam
             """, language="bash")
 
-            st.markdown("Recalibrate using the metrics calculated above with `PrintReads`")
+            st.markdown("Recalibrate using the metrics calculated above with `ApplyBQSR`")
             st.code("""
-            gatk --java-options "-Xmx4G" \\
-                ApplyBQSR \\
-                -R $REF/b37.fa \\
+            gatk --java-options "-Xmx4G" ApplyBQSR \\
+                -R $REF \\
                 --bqsr-recal-file HG002.sorted.dup.recalibration_report.grp \\
                 -O HG002.sorted.dup.recal.bam \\
                 -I HG002.sorted.dup.bam
@@ -174,11 +189,11 @@ with col2:
             st.code("""
             gatk --java-options "-Xmx4G" \\
                 HaplotypeCaller \\
-                -R $REF/b37.fa \\
+                -R $REF \\
                 -I HG002.sorted.dup.recal.bam \\
                 -ERC GVCF \\
                 -O HG002.g.vcf \\
-                -L 20:43200000-43300000 \\
+                -L chr20:43200000-43300000 \\
                 --native-pair-hmm-threads 1
             """, language="bash")
 
