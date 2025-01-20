@@ -54,7 +54,7 @@ with col10:
 
 st.markdown("## Lecture 3")
 
-col11,col12,col13, col14,col14 = st.columns(5)
+col11,col12,col13, col14,col15 = st.columns(5)
 
 with col11:
     st.video("https://www.youtube.com/watch?v=nIlMr1kWr5Q")
