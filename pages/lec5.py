@@ -3,7 +3,7 @@ import streamlit as st
 col1, col2, col3 = st.columns([2,8,2])
 
 with col2:
-    st.header("Transcripion and RNA Sequencing", divider=True)
+    st.header("Transcription and RNA Sequencing", divider=True)
 
 
     #############################################################################################

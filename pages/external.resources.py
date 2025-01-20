@@ -54,20 +54,22 @@ with col10:
 
 st.markdown("## Lecture 3")
 
-with col1:
-    pass
+col11,col12,col13, col14,col14 = st.columns(5)
 
-with col2:
-    pass
+with col11:
+    st.video("https://www.youtube.com/watch?v=nIlMr1kWr5Q")
 
-with col3:
-    pass
+with col12:
+    st.video("https://www.youtube.com/watch?v=cBDZSGf9HRE&pp=ygUKdmNmIGZvcm1hdA%3D%3D")
 
-with col4:
-    pass
+with col13:
+    st.video("https://www.youtube.com/watch?v=f_qkqjK7L8o&pp=ygUPdmFyaWFudCBjYWxsaW5n")
 
-with col5:
-    pass
+with col14:
+    st.video("https://www.youtube.com/watch?v=-_zx46jyfRo&pp=ygUedmFyaWFudCBjYWxsaW5nIGFuZCBhbm5vdGF0aW9u")
+
+with col15:
+    st.video("https://www.youtube.com/watch?v=iHkiQvxyr5c&t=2397s&pp=ygUedmFyaWFudCBjYWxsaW5nIGFuZCBhbm5vdGF0aW9u")
 
 st.markdown("## Lecture 4")
 
