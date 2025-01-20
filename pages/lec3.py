@@ -34,13 +34,12 @@ with col2:
             GATK_JAR=/project/def-sponsor00/hgen_share/utils/GenomeAnalysisTK-3.8.1.jar
             PICARD_JAR=/project/def-sponsor00/hgen_share/utils/picard.jar
 
-            # export PATH="/home/hgen_share/utils/gatk-4.1.9.0:$PATH"
             module load StdEnv/2023 gatk/4.4.0.0
-            # module load nixpkgs/16.09 java/1.8.0_192
+
             """, language="bash")
 
             st.markdown("The recommended cut-offs are found [here](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants)")
-            # QD<2.0, FS>60.0, SOR>3.0, MQ<40.0, MQRankSum < -12.5 and ReadPosRankSum < -8.0.
+
             st.code("""
             gatk --java-options "-Xmx4G" \\
                 VariantFiltration \\
@@ -57,17 +56,6 @@ with col2:
             st.markdown("How many variants appear ok?")
             st.code("""
             grep -v '^#' HG002.filt.g.vcf | cut -f7 | grep 'PASS' | wc -l
-            """, language="bash")
-
-            st.markdown("Set up variables for [DeepVariant](https://github.com/google/deepvariant)")
-            st.code("""
-            module load StdEnv/2023 apptainer/1.3.5
-            # mkdir -p "${PWD}/data"
-            # mkdir -p "${PWD}/output"
-            # INPUT_DIR="${PWD}/data"
-            # OUTPUT_DIR="${PWD}/output"
-            # TMPDIR=.
-            # cp /home/hgen_share/lec3/* ${INPUT_DIR}
             """, language="bash")
 
             st.markdown("Run [DeepVariant](https://github.com/google/deepvariant) on the same sample from last week. **Note: this may take a few minutes**")
@@ -229,11 +217,6 @@ with col2:
     with st.container(border=True):
             st.markdown("#### Add functional annotations with SnpEff")
             
-            st.markdown("Copy whole genome variant calls")
-            st.code("""
-            # cp /home/hgen_share/lec3_part2/* ./
-            """, language="bash")
-
             st.markdown("Use `SnpEff` with mostly default parameters")
             st.code("""
             UTILS=/project/def-sponsor00/hgen_share/utils/
