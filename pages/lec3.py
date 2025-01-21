@@ -60,6 +60,8 @@ with col2:
 
             st.markdown("Run [DeepVariant](https://github.com/google/deepvariant) on the same sample from last week. **Note: this may take a few minutes**")
             st.code("""
+            module load apptainer/1.3.5
+
             singularity run -B $PWD,/usr/lib/locale/ \\
                         /project/def-sponsor00/hgen_share/lec3/deepvariant_1.4.0.sif \\
                         /opt/deepvariant/bin/run_deepvariant \\
@@ -139,12 +141,13 @@ with col2:
                 -O raw.snp.vcf \\
                 --truth-sensitivity-filter-level 99.5 \\
                 --tranches-file  ${data}/recal_SNP.tranches \\
-                --recal-file  ${data}/recal_SNP.recal \\
+                --recal-file recal_SNP.recal \\
                 -mode SNP
             """, language="bash")
 
             st.markdown("Now repeat for indels")
             st.code("""
+            ### Note: this might take some time to run
             gatk --java-options "-Xmx4G" \\
                 VariantRecalibrator \\
                 -R ${b37}/b37.fa \\
