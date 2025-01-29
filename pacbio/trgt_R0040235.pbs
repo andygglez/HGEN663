@@ -1,0 +1,47 @@
+#!/bin/sh
+#PBS -N R0040235
+#PBS -j oe
+#PBS -l walltime=16:00:00
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=80GB
+#PBS -q sw
+#PBS -m ae
+#PBS -M eb.mtl@pm.me
+#PBS -A vdu-032-ad
+#
+module load itgenome/pacbiotools/0.0.0
+
+# Set environment variables (make sure paths are correct)
+BASEDIR="/lb/project/GRID/NOBACKUP/eba/"
+REF_FILE="${BASEDIR}/RS_PacBio_WGS_202X/ref/hg38.fasta"
+REPEAT_DEF="${BASEDIR}/RS_PacBio_WGS_202X/definitions/polymorphic_repeats.hg38.bed"
+INPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/reads/ALIGNED"
+OUTPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/final/hg38/REPEATS"
+SAMPLE="R0040235"
+
+# Create necessary directories
+mkdir -p ${OUTPUT_DIR}
+cd ${OUTPUT_DIR}/
+
+# Genotype repeats
+trgt genotype --genome ${REF_FILE} \
+       --repeats ${REPEAT_DEF} \
+       --reads ${INPUT_DIR}/${SAMPLE}.sorted.bam \
+       --output-prefix ${SAMPLE}
+
+conda deactivate
+
+
+# Sort & index output
+cd ${OUTPUT_DIR}/
+
+module load itgenome/bcbio/1.2.8
+export PATH="/home/ebareke/.local/bin:$PATH"
+
+bcftools sort -Ob -o ${SAMPLE}.sorted.vcf.gz ${SAMPLE}.vcf.gz
+bcftools index ${SAMPLE}.sorted.vcf.gz
+
+samtools sort -@ 10 -o ${SAMPLE}.spanning.sorted.bam ${SAMPLE}.spanning.bam
+samtools index -@ 10 ${SAMPLE}.spanning.sorted.bam
+rm -f ${SAMPLE}.spanning.bam
+

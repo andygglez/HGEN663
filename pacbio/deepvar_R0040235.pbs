@@ -1,0 +1,44 @@
+#!/bin/sh
+#PBS -N R0040235
+#PBS -j oe
+#PBS -l walltime=16:00:00
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=64GB
+#PBS -q sw
+#PBS -m ae
+#PBS -M eb.mtl@pm.me
+#PBS -A vdu-032-ad
+#
+# Set environment variables (make sure paths are correct)
+BASEDIR="/lb/project/GRID/NOBACKUP/eba/"
+REF="/lb/project/GRID/NOBACKUP/eba/RS_PacBio_WGS_202X/ref/hg38.fasta"
+SOFT="/lb/project/GRID/NOBACKUP/eba/RS_PacBio_WGS_202X/images"
+INPUT_DIR="/lb/project/GRID/NOBACKUP/eba/RS_PacBio_WGS_202X/reads/ALIGNED"
+OUTPUT_DIR="/lb/project/GRID/NOBACKUP/eba/RS_PacBio_WGS_202X/final/hg38/SNV"
+SAMPLE="R0040235"
+
+# Create necessary directories
+mkdir -p ${BASEDIR}/RS_PacBio_WGS_202X/final/hg38/SNV
+mkdir -p ${BASEDIR}/RS_PacBio_WGS_202X/intermediate_results_dir/${SAMPLE}
+mkdir -p ${BASEDIR}/RS_PacBio_WGS_202X/tmp/${SAMPLE}
+rm -rf ${BASEDIR}/RS_PacBio_WGS_202X/tmp/${SAMPLE}/*
+#chmod -R 777 ${BASEDIR}
+# Navigate to temporary directory
+cd ${BASEDIR}/RS_PacBio_WGS_202X/tmp/${SAMPLE}/
+mkdir -p /lb/scratch/ebareke/tmp
+
+# Run DeepVariant using apptainer
+singularity exec --bind /usr/lib/locale/:/usr/lib/locale/ \
+--bind /lb/scratch/ebareke/tmp/:/lb/scratch/ebareke/tmp/ \
+--bind ${BASEDIR}:/data/ \
+--workdir /data/RS_PacBio_WGS_202X/tmp/${SAMPLE} \
+--writable-tmpfs \
+${BASEDIR}/RS_PacBio_WGS_202X/images/deepvariant_1.8.0.sif /opt/deepvariant/bin/run_deepvariant \
+--model_type=PACBIO \
+--ref /data/RS_PacBio_WGS_202X/ref/hg38.fasta \
+--reads /data/RS_PacBio_WGS_202X/reads/ALIGNED/${SAMPLE}.sorted.bam \
+--vcf_stats_report=true \
+--output_vcf=/data/RS_PacBio_WGS_202X/final/hg38/SNV/${SAMPLE}.vcf.gz \
+--output_gvcf=/data/RS_PacBio_WGS_202X/final/hg38/SNV/${SAMPLE}.g.vcf.gz \
+--intermediate_results_dir=/data/RS_PacBio_WGS_202X/intermediate_results_dir/${SAMPLE} \
+--num_shards=12

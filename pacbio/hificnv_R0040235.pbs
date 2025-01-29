@@ -1,0 +1,41 @@
+#!/bin/sh
+#PBS -N R0040235
+#PBS -j oe
+#PBS -l walltime=16:00:00
+#PBS -l nodes=1:ppn=6
+#PBS -l mem=160GB
+#PBS -q lm
+#PBS -m ae
+#PBS -M eb.mtl@pm.me
+#PBS -A vdu-032-ad
+#
+module load itgenome/pacbiotools/0.0.0
+
+# Set environment variables (make sure paths are correct)
+SAMPLE="R0040235"
+BASEDIR="/lb/project/GRID/NOBACKUP/eba/"
+REF_FILE="${BASEDIR}/RS_PacBio_WGS_202X/ref/hg38.fasta"
+INPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/reads/ALIGNED"
+MAF_FILE="${BASEDIR}/RS_PacBio_WGS_202X/final/hg38/PHASED/${SAMPLE}.deepvariant.phased.vcf.gz"
+OUTPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/final/hg38/CNV"
+EXCLUDE_REGION="${BASEDIR}/RS_PacBio_WGS_202X/definitions/cnv.excluded_regions.common_50.hg38.bed.gz"
+EXPECTED_CN="${BASEDIR}/RS_PacBio_WGS_202X/definitions/expected_cn.hg38.XY.bed"
+SAMPLE="R0040235"
+
+# Create necessary directories
+module load itgenome/pacbiotools/0.0.0
+
+mkdir -p ${OUTPUT_DIR}
+cd ${OUTPUT_DIR}/
+
+# Call CNVs
+hificnv \
+    --bam ${INPUT_DIR}/${SAMPLE}.sorted.bam \
+    --maf ${MAF_FILE} \
+    --ref ${REF_FILE} \
+    --exclude ${EXCLUDE_REGION} \
+    --expected-cn ${EXPECTED_CN} \
+    --threads 4 \
+    --output-prefix ${SAMPLE}
+
+module unload itgenome/pacbiotools/0.0.0

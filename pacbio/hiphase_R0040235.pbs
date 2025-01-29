@@ -1,0 +1,58 @@
+#!/bin/sh
+#PBS -N R0040235
+#PBS -j oe
+#PBS -l walltime=16:00:00
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=160GB
+#PBS -q lm
+#PBS -m ae
+#PBS -M eb.mtl@pm.me
+#PBS -A vdu-032-ad
+#
+module load itgenome/pacbiotools/0.0.0
+
+# Set environment variables (make sure paths are correct)
+BASEDIR="/lb/project/GRID/NOBACKUP/eba/"
+REF_FILE="${BASEDIR}/RS_PacBio_WGS_202X/ref/hg38.fasta"
+INPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/reads/ALIGNED"
+VAR_DIR="${BASEDIR}/RS_PacBio_WGS_202X/final/hg38"
+OUTPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/final/hg38/PHASED"
+SAMPLE="R0040235"
+
+# Index input vcf files
+module load itgenome/bcbio/1.2.8
+export PATH="/home/ebareke/.local/bin:$PATH"
+
+cd ${VAR_DIR}/SNV/
+tabix -p vcf ${SAMPLE}.vcf.gz
+cd ${VAR_DIR}/SV/
+bgzip ${SAMPLE}.SV.vcf && tabix -p vcf ${SAMPLE}.SV.vcf.gz
+cd ${VAR_DIR}/REPEATS/
+tabix -p vcf ${SAMPLE}.sorted.vcf.gz
+
+module unload itgenome/bcbio/1.2.8
+
+
+
+# Create necessary directories
+module load itgenome/pacbiotools/0.0.0
+
+mkdir -p ${OUTPUT_DIR}
+cd ${OUTPUT_DIR}/
+
+# Phasing variations
+hiphase \
+    --bam ${INPUT_DIR}/${SAMPLE}.sorted.bam \
+    --vcf ${VAR_DIR}/SNV/${SAMPLE}.vcf.gz \
+    --output-vcf ${OUTPUT_DIR}/${SAMPLE}.deepvariant.phased.vcf.gz \
+    --vcf ${VAR_DIR}/SV/${SAMPLE}.SV.vcf.gz \
+    --output-vcf ${OUTPUT_DIR}/${SAMPLE}.pbsv.phased.vcf.gz \
+    --vcf ${VAR_DIR}/REPEATS/${SAMPLE}.sorted.vcf.gz \
+    --output-vcf ${OUTPUT_DIR}/${SAMPLE}.trgt.phased.vcf.gz \
+    --reference ${REF_FILE} \
+    --stats-file ${SAMPLE}.stats.csv \
+    --blocks-file ${SAMPLE}.blocks.tsv \
+    --summary-file ${SAMPLE}.summary.tsv \
+    --threads 10
+
+module unload itgenome/pacbiotools/0.0.0

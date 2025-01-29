@@ -1,0 +1,29 @@
+#!/bin/sh
+#PBS -N R0040235
+#PBS -j oe
+#PBS -l walltime=16:00:00
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=160GB
+#PBS -q lm
+#PBS -m ae
+#PBS -M eb.mtl@pm.me
+#PBS -A vdu-032-ad
+#
+module load itgenome/pacbiotools/0.0.0
+#
+reference="/project/6007495/barekeer/pipelines/core/genomes/Hsapiens/hg38/pacbio/hg38.fasta"
+BASEDIR="/lb/project/GRID/NOBACKUP/eba/"
+REF_FILE="${BASEDIR}/RS_PacBio_WGS_202X/ref/hg38.fasta"
+INPUT_DIR="${BASEDIR}/RS_PacBio_WGS_202X/reads/ALIGNED"
+###
+cd ${INPUT_DIR}/
+pbmm2 align -j 10 ${REF_FILE}  ${BASEDIR}/RS_PacBio_WGS_202X/controls/fastq/R0040235.fastq R0040235.sorted.bam --sort --rg '@RG\tID:idR0040235\tSM:myR0040235'
+
+module load itgenome/bcbio/1.2.8
+export PATH="/home/ebareke/.local/bin:$PATH"
+samtools index -@ 10 R0040235.sorted.bam
+#
+cd ${BASEDIR}/RS_PacBio_WGS_202X/checkout/hg38/SV/
+pbsv discover ${BASEDIR}/RS_PacBio_WGS_202X/reads/ALIGNED/R0040235.sorted.bam R0040235.svsig.gz
+tabix -c '#' -s 3 -b 4 -e 4 R0040235.svsig.gz
+pbsv call -j 10 ${REF_FILE} R0040235.svsig.gz R0040235.SV.vcf
