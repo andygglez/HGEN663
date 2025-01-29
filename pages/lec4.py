@@ -62,6 +62,15 @@ with col2:
                 --output-prefix ${SAMPLE}
         """, language="bash")
 
+        st.divider()
+
+    with st.container(border=True):
+        st.markdown("#### Given these two vcf files, find a command to obtain common and unique variants")
+
+        st.code("""
+        ill_snv=/project/def-sponsor00/hgen_share/lec4/HG002.Illumina.dv.vcf.gz
+        pacbio_snv=/project/def-sponsor00/hgen_share/lec4/HG002_PacBio_GRCh38.deepvariant.phased.chr22.vcf.gz
+        """, language="bash")
 
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
@@ -80,7 +89,6 @@ with col2:
 
     else:
 
-        st.divider()
         with st.container(border=True):
             st.markdown("#### Compare Illumina vs PacBio SNVs: ")
 
