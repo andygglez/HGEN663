@@ -5,20 +5,14 @@ col1, col2, col3 = st.columns([2,8,2])
 with col2:
     st.header("Transcription and RNA Sequencing", divider=True)
 
-
-    #############################################################################################
-
-    with st.container(border=True):
-        st.markdown("#### Copy the files for today's class from /home/hgen_share/lec5")
-        st.markdown("Set up directory and copy over files")
-    st.divider()
-    #############################################################################################
     with st.container(border=True):
         st.markdown("#### Take a look at the GENCODE GTF file")
         
         st.markdown("Check out the first few lines from the GTF file")
         st.code("""
-        head gencode.v36.annotation.chr1.gtf | column -t -s $'\t' | less -S
+        data=/project/def-sponsor00/hgen_share/lec5
+
+        head ${data}/gencode.v36.annotation.chr1.gtf | column -t -s $'\t' | less -S
         """, language="bash")
     st.divider()
     #############################################################################################
@@ -27,30 +21,44 @@ with col2:
         
         st.markdown("Set up variables")
         st.code("""
-        module load StdEnv/2020 gcc/9.3.0 openmpi/4.0.3 salmon/1.3.0 star/2.7.5a samtools/1.11 java/13.0.2 subread/2.0.1
+        module load gcc/12.3  openmpi/4.1.5 salmon/1.10.2 star/2.7.11b subread/2.0.6
+
         BASE=/home/hgen_share
-        PICARD_JAR=$BASE/utils/picard.jar
+        PICARD_JAR=$data/../utils/picard.jar
         """, language="bash")
 
+#       STAR --genomeDir $BASE/star/chr1 \\
         st.markdown("Align with [STAR](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf)")
-        st.code("""
-        mkdir -p results
 
-        STAR --genomeDir $BASE/star/chr1 \\
-        --runThreadN 1 \\
-        --readFilesIn ex.fq \\
-        --outFileNamePrefix results/ex_ \\
-        --outSAMtype BAM SortedByCoordinate \\
-        --outSAMunmapped Within \\
-        --outSAMattributes Standard \\
-        --outFilterScoreMinOverLread 0.3 \\
-        --outFilterMatchNminOverLread 0.3 \\
-        --twopassMode Basic
+        st.markdown("Build an index. :red[Don't run steps that involve the STAR aligner]")
+        st.code("""
+        mkdir -p ${data}/STAR_index
+
+        STAR --runThreadN 2 \\
+             --runMode genomeGenerate \\
+             --genomeDir ${data}/STAR_index \\
+             --genomeFastaFiles ${data}/chr1.fa \\
+             --sjdbGTFfile$ {data}/gencode.v36.annotation.chr1.gtf &> log.indexing.txt
+        """, language="bash")
+
+        st.code("""
+        mkdir -p /project/def-sponsor00/hgen_share/lec5/results
+
+        STAR --genomeDir ${data}/STAR_index \\
+             --runThreadN 4 \\
+             --readFilesIn ${data}/ex.fq \\
+             --outFileNamePrefix ${data}/results/ex_ \\
+             --outSAMtype BAM SortedByCoordinate \\
+             --outSAMunmapped Within \\
+             --outSAMattributes Standard \\
+             --outFilterScoreMinOverLread 0.3 \\
+             --outFilterMatchNminOverLread 0.3 \\
+             --twopassMode Basic
         """, language="bash")
 
         st.markdown("Take a look at the summary statistics with `less`")
         st.code("""
-        less results/ex_Log.final.out
+        less ${data}/results/ex_Log.final.out
         """, language="bash")
     st.divider()
     #############################################################################################
@@ -60,18 +68,19 @@ with col2:
         st.markdown("Run [featureCounts](https://subread.sourceforge.net/SubreadUsersGuide.pdf)")
         st.code("""
         featureCounts -T 4 -s 2 \\
-        -a gencode.v36.annotation.chr1.gtf \\
-        -o ex_featurecounts.txt \\
-        results/ex_Aligned.sortedByCoord.out.bam
+                -a ${data}/gencode.v36.annotation.chr1.gtf \\
+                -o ex_featurecounts.txt \\
+                ${data}/results/ex_Aligned.sortedByCoord.out.bam
         """, language="bash")
 
         st.markdown("Run [Salmon](https://salmon.readthedocs.io/en/latest/)")
         st.code("""
-        salmon quant -i $BASE/salmon/chr1 \\
+        module load salmon/1.10.2
+        
+        salmon quant -i ${data}/transcriptome_index \\
                 -l A \\
-                -r ex.fq \\
-                -o ex_salmon \\
-                --seqBias
+                -r ${data}/ex.fq --validateMappings \\
+                -o salmon_quant
         """, language="bash")
 
         st.markdown("Download the output from the gene expression counters")
@@ -98,13 +107,6 @@ with col2:
         library(tibble)
         """, language="r")
 
-        st.markdown("")
-        st.code("""
-        """, language="r")
-
-        st.markdown("")
-        st.code("""
-        """, language="r")
     st.divider()
     #############################################################################################
     with st.container(border=True):
@@ -120,7 +122,7 @@ with col2:
 
         tx2gene <- g[g$type == 'transcript'] %>%
                 {tibble(txid = .$transcript_id, gene = .$gene_id)} %>%
-                mutate_all(function(x) sub('\\..*', '', x))
+                mutate_all(function(x) sub('\\\..*', '', x))
         """, language="r")
 
         st.code("""
@@ -157,6 +159,8 @@ with col2:
 
     st.divider()
     #############################################################################################
+    # Sys.setenv(PATH = paste("/Users/padilr1/opt/anaconda3/envs/r_env/bin", 
+    #            Sys.getenv("PATH"), sep=":"))
     with st.container(border=True):
         st.markdown("#### Salmon")
         
@@ -164,8 +168,6 @@ with col2:
         st.code("""
         # read in raw data
         sf <- read.table('quant.sf', header = 1)
-        Sys.setenv(PATH = paste("/Users/padilr1/opt/anaconda3/envs/r_env/bin", 
-                   Sys.getenv("PATH"), sep=":"))
 
         # import salmon results
         sm <- tximport("quant.sf",
@@ -193,7 +195,7 @@ with col2:
         st.markdown("Merge")
         st.code("""
         # merge by ensembl gene id
-        both <- fc %>% mutate(Geneid = sub('\\..*', '', Geneid)) %>% 
+        both <- fc %>% mutate(Geneid = sub('\\\..*', '', Geneid)) %>% 
                 merge(sm$counts, by.x = 'Geneid', by.y = 'row.names') %>%
                 dplyr::rename(sm = V1, fc = count)
         """, language="r")
@@ -300,78 +302,74 @@ with col2:
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
-        st.markdown("#### Your turn")
+    # with st.container(border=True):
+    #     st.markdown("#### Your turn")
         
-        st.markdown("Load the featureCount dataset ex2_featureCounts.txt.")
-        st.markdown("**Load**")
-        st.code("""
-        fc <- read.table("~/Documents/HGEN_663/extra/lec5/ex2_featureCounts.txt",header=1)
-        """, language="r")
+    #     st.markdown("Load the featureCount dataset ex2_featureCounts.txt.")
+    #     st.markdown("**Load**")
+    #     st.code("""
+    #     fc <- read.table("~/Documents/HGEN_663/extra/lec5/ex2_featureCounts.txt",header=1)
+    #     """, language="r")
 
-        st.markdown("**Create DESeq object**")
-        st.markdown("""Remove unnecessary columns. An example of how to generate
-        a metadata object is indicated below. Within the metadata dataframe, 
-        create another column called condition, grouping together the parental (PA),
-        NSD1 knockout (NSD1KO) and NSD1/2 double knockouts (NSD12DKO) samples. 
-        Use ~condition in the design parameter when creating your DESeq object.""")
-        st.code("""
-        df <- fc %>% 
-        dplyr::select(-c(2:6)) %>% 
-                tibble::column_to_rownames("Geneid")
+    #     st.markdown("**Create DESeq object**")
+    #     st.markdown("""Remove unnecessary columns. An example of how to generate
+    #     a metadata object is indicated below. Within the metadata dataframe, 
+    #     create another column called condition, grouping together the parental (PA),
+    #     NSD1 knockout (NSD1KO) and NSD1/2 double knockouts (NSD12DKO) samples. 
+    #     Use ~condition in the design parameter when creating your DESeq object.""")
+    #     st.code("""
+    #     df <- fc %>% 
+    #     dplyr::select(-c(2:6)) %>% 
+    #             tibble::column_to_rownames("Geneid")
 
-        mat <- df %>% as.matrix()
+    #     mat <- df %>% as.matrix()
 
-        metadata <- data.frame(kind=colnames(mat))
+    #     metadata <- data.frame(kind=colnames(mat))
 
-        metadata$condition <- "PA"
+    #     metadata$condition <- "PA"
 
-        metadata[3:4,"condition"] <- "NSD1KO"
-        metadata[5:6,"condition"] <- "NSD12DKO"
+    #     metadata[3:4,"condition"] <- "NSD1KO"
+    #     metadata[5:6,"condition"] <- "NSD12DKO"
 
-        metadata <- tibble::column_to_rownames(metadata,"kind")
+    #     metadata <- tibble::column_to_rownames(metadata,"kind")
 
-        dds <- DESeqDataSetFromMatrix(countData = mat,
-                                      colData = metadata,
-                                      design = ~condition)
-        """, language="r")
+    #     dds <- DESeqDataSetFromMatrix(countData = mat,
+    #                                   colData = metadata,
+    #                                   design = ~condition)
+    #     """, language="r")
 
-        st.markdown("**Apply vst transformation**")
-        st.code("""
-        vst <- varianceStabilizingTransformation(dds)
-        """, language="r")
+    #     st.markdown("**Apply vst transformation**")
+    #     st.code("""
+    #     vst <- varianceStabilizingTransformation(dds)
+    #     """, language="r")
 
-        st.markdown("**PCA**")
-        st.markdown("Plot only the top 500 most variable genes.")
-        st.code("""
-        # subset data
-        select <- assay(vst) %>%
-                apply(1, sd) %>%
-                order(decreasing = TRUE) %>%
-                .[1:500]
-        vst_filt <- vst[select,]
+    #     st.markdown("**PCA**")
+    #     st.markdown("Plot only the top 500 most variable genes.")
+    #     st.code("""
+    #     # subset data
+    #     select <- assay(vst) %>%
+    #             apply(1, sd) %>%
+    #             order(decreasing = TRUE) %>%
+    #             .[1:500]
+    #     vst_filt <- vst[select,]
         
-        plotPCA(vst_filt)
-        """, language="r")
-        st.image("images/lec5.PCA2.png")
+    #     plotPCA(vst_filt)
+    #     """, language="r")
+    #     st.image("images/lec5.PCA2.png")
 
-        st.markdown("**Hierarchical clustering**")
-        st.markdown("Do the same as above for hierarchical clustering.")
-        st.code("""
-        heatmap(assay(vst_filt), margins = c(10, 5))
-        """, language="r")
-        st.image("images/lec5.heatmap2.png")
+    #     st.markdown("**Hierarchical clustering**")
+    #     st.markdown("Do the same as above for hierarchical clustering.")
+    #     st.code("""
+    #     heatmap(assay(vst_filt), margins = c(10, 5))
+    #     """, language="r")
+    #     st.image("images/lec5.heatmap2.png")
 
-        st.markdown("**Spotcheck**")
-        st.markdown("""Google the ensembl id for NSD1 (in humans). Plot the expression level.
-        Does the expression level seem different between the knockout and parental samples?""")
-        st.code("""
-        # NSD1 = ENSG00000165671
-        # NSD2 = ENSG00000109685
-        plotCounts(dds,gene = "ENSG00000165671",intgroup = "condition")
-        """, language="r")
-        st.image("images/lec5.ind.gene2.png")
-
-
-    st.divider()
-    #############################################################################################
+    #     st.markdown("**Spotcheck**")
+    #     st.markdown("""Google the ensembl id for NSD1 (in humans). Plot the expression level.
+    #     Does the expression level seem different between the knockout and parental samples?""")
+    #     st.code("""
+    #     # NSD1 = ENSG00000165671
+    #     # NSD2 = ENSG00000109685
+    #     plotCounts(dds,gene = "ENSG00000165671",intgroup = "condition")
+    #     """, language="r")
+    #     st.image("images/lec5.ind.gene2.png")
