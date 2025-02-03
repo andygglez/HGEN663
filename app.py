@@ -59,6 +59,7 @@ options = ["HGEN663"]
 options.extend(lectures)
 options.append("---")
 options.append("External Resources")
+options.append("Student Selector")
 options.append("---")
 
 icons = ['house']
@@ -69,7 +70,7 @@ with st.sidebar:
         options=options, icons=['house',"","","","",
                                         "","","",""
                                         "","","","",
-                                        "","","box-arrow-up-right"],default_index=0)
+                                        "","","box-arrow-up-right", "bullseye"],default_index=0)
 
 if page_selected == "HGEN663":
     exec(open("pages/Home.py").read())
@@ -112,3 +113,6 @@ if page_selected == "Lecture 12":
 
 if page_selected == "External Resources":
     exec(open('pages/external.resources.py').read())
+
+if page_selected == "Student Selector":
+    exec(open('pages/student.selector.py').read())
