@@ -221,19 +221,19 @@ with col2:
         """, language="r")
         st.image("images/lec5.comp.fC.sm2.png")
 
-        st.markdown("Create DESeq object")
-        st.code("""
-        mat <- as.matrix(both[,c('fc','sm')])
+        # st.markdown("Create DESeq object")
+        # st.code("""
+        # mat <- as.matrix(both[,c('fc','sm')])
 
-        cdat <- data.frame(kind = colnames(mat)) %>% 
-                        `rownames<-`(colnames(mat))
+        # cdat <- data.frame(kind = colnames(mat)) %>% 
+        #                 `rownames<-`(colnames(mat))
 
-        dds <- DESeqDataSetFromMatrix(countData = round(mat),
-                                      colData = cdat,
-                                      design = ~kind)
-        dds
-        """, language="r")
-        st.image("images/lec5.deseq.obj.png")
+        # dds <- DESeqDataSetFromMatrix(countData = round(mat),
+        #                               colData = cdat,
+        #                               design = ~kind)
+        # dds
+        # """, language="r")
+        # st.image("images/lec5.deseq.obj.png")
     st.divider()
     #############################################################################################
     with st.container(border=True):
@@ -249,27 +249,16 @@ with col2:
         """, language="r")
         st.image("images/lec5.full.dataset.png")
 
-        st.markdown("#### Variance stabilization")
-        st.markdown("""Although differential expression analysis requires raw counts, transformed
-        data generally works better for visualization, clustering, and other uses. Compare a simple
-        log2 transformation versus the regularized log and variance stabilizing transformations.""")
+        st.markdown("""We can compare different replicates and conditions of RNA-Seq experiments""")
         st.code("""
         keep <- rowSums(counts(dds)) >= 10
         dds.filt <- dds[keep,]
-
-        # variance stabilizing, regularized log, and shift log transformations
-        lapply(c('vst', 'rlog', 'normTransform'), function(x) {
-        match.fun(x)(dds.filt) %>%
-        assay() %>%
-        meanSdPlot(plot = F) %>%
-        .$gg +
-        ggtitle(x)
-        }) %>% wrap_plots(nrow = 1)
         """, language="r")
 
-        st.image("images/lec5.var.stab.png")
+        # st.image("images/lec5.var.stab.png")
 
         st.markdown("#### Dimension reduction")
+        st.markdown("Perform a variance stabilizing transformation")
         st.code("""
         vsd <- vst(dds.filt)
         plotPCA(vsd)
