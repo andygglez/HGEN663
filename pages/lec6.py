@@ -26,7 +26,7 @@ with col2:
             library(tidyverse)
 
             # set your working directory
-            setwd("~/Documents/HGEN_663/extra/lec6")
+            setwd("~/lec6")
             """, language="r")
 
     st.divider()
@@ -49,26 +49,10 @@ with col2:
             st.image("images/lec6.import.png")
 
             st.markdown("#### Run analysis")
-            st.markdown("How does normalization show up on the MA plot?")
+            # st.markdown("How does normalization show up on the MA plot?")
             st.code("""
             dds <- DESeq(dds)
 
-            par(mfrow = c(1, 2))
-            limma::plotMA(log2(counts(dds) + 1), array = 8, main = "raw")
-            abline(h = 0, col = "grey")
-            limma::plotMA(log2(counts(dds, normalized = T)  + 1), array = 8, main = "normalized")
-            abline(h = 0, col = "grey")
-            """, language="r")
-            st.image("images/lec6.run.analysis.png")
-
-
-    st.divider()
-    #############################################################################################
-
-    with st.container(border=True):
-            st.markdown("#### Get results")
-            
-            st.code("""
             res <- results(dds)
             head(res)
             """, language="r")
@@ -85,7 +69,7 @@ with col2:
             st.markdown("#### MA plot")
             st.code("""
             par(mfrow = c(1, 2))
-            DESeq2::plotMA(res, ylim = c(-5, 5), maiin = 'Original')
+            DESeq2::plotMA(res, ylim = c(-5, 5), main = 'Original')
             DESeq2::plotMA(resLFC, ylim = c(-5, 5), main = 'Shrunken')
             """, language="r")
             st.image("images/lec6.MA.plot.png")
@@ -148,36 +132,25 @@ with col2:
                 y = sprintf('PC2: %.1f%% variance', 100 * attr(pd, 'percentVar')[2])) +
             coord_fixed()
             """, language="r")
-            st.image("images/lec6.MA.plot.png")
-
-            st.markdown("#### Heatmap")
-            st.code("""
-            assay(rld) %>%
-                apply(1, sd) %>%
-                order(decreasing = TRUE) %>%
-                .[1:100] %>%
-                assay(rld)[.,] %>%
-                heatmap()
-            """, language="r")
-            st.image("images/lec6.heatmap.png")
+            st.image("images/lec6.PCA.plot.png")
 
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
-            st.markdown("#### Design")
+    # with st.container(border=True):
+    #         st.markdown("#### Design")
             
-            st.code("""
-            colData(dds) <- cbind(coldata, extra)
-            colData(dds)$condition <- factor(colData(dds)$condition)
-            design(dds) <- ~ sex + condition
-            dds <- DESeq(dds)
-            res.s <- results(dds)
+    #         st.code("""
+    #         colData(dds) <- cbind(coldata, extra)
+    #         colData(dds)$condition <- factor(colData(dds)$condition)
+    #         design(dds) <- ~ sex + condition
+    #         dds <- DESeq(dds)
+    #         res.s <- results(dds)
 
-            design(dds) <- ~ sex + age + condition
-            dds <- DESeq(dds)
-            res.sa <- results(dds)
-            """, language="r")
+    #         design(dds) <- ~ sex + age + condition
+    #         dds <- DESeq(dds)
+    #         res.sa <- results(dds)
+    #         """, language="r")
 
     st.divider()
     #############################################################################################
@@ -205,27 +178,27 @@ with col2:
             res <- results(dds)
             """, language="r")
 
-            st.markdown("#### DE")
-            st.code("""
-            t10 <- data.frame(res) %>%
-                rownames_to_column("gene") %>%
-                slice_min(padj, n = 10, with_ties = F) %>%
-                arrange(padj) %>%
-                pull(gene)
+            # st.markdown("#### DE")
+            # st.code("""
+            # t10 <- data.frame(res) %>%
+            #     rownames_to_column("gene") %>%
+            #     slice_min(padj, n = 10, with_ties = F) %>%
+            #     arrange(padj) %>%
+            #     pull(gene)
 
-            counts(dds, normalized = TRUE) %>%
-                data.frame() %>%
-                rownames_to_column('gene') %>%
-                dplyr::filter(gene %in% t10) %>%
-                pivot_longer(-gene, names_to = 'samp', values_to = 'ct') %>%
-                merge(rownames_to_column(data.frame(coldata), 'samp')) %>%
-                mutate(gene = factor(gene, t10)) %>%
-                ggplot(aes(x = condition, y = ct, color = condition)) +
-                geom_point() +
-                scale_y_log10() +
-                facet_wrap(.~gene)
-            """, language="r")
-            st.image("images/lec6.DE.png")
+            # counts(dds, normalized = TRUE) %>%
+            #     data.frame() %>%
+            #     rownames_to_column('gene') %>%
+            #     dplyr::filter(gene %in% t10) %>%
+            #     pivot_longer(-gene, names_to = 'samp', values_to = 'ct') %>%
+            #     merge(rownames_to_column(data.frame(coldata), 'samp')) %>%
+            #     mutate(gene = factor(gene, t10)) %>%
+            #     ggplot(aes(x = condition, y = ct, color = condition)) +
+            #     geom_point() +
+            #     scale_y_log10() +
+            #     facet_wrap(.~gene)
+            # """, language="r")
+            # st.image("images/lec6.DE.png")
 
     st.divider()
     #############################################################################################
@@ -238,7 +211,7 @@ with col2:
             rd <- data.frame(res) %>%
                 na.omit() %>%
                 rownames_to_column('gene') %>%
-                mutate(gene = sub('\\..*', '', gene)) 
+                mutate(gene = sub('\\\..*', '', gene)) 
 
             g <- gost(rd$gene[rd$padj < .05 & abs(rd$log2FoldChange) > .5],
                     organism = 'hsapiens',
@@ -336,72 +309,5 @@ with col2:
                 )
             """, language="r")
             st.image("images/lec6.enrichment.table.png")
-
-    st.divider()
-    #############################################################################################
-
-    with st.container(border=True):
-            st.markdown("#### Your turn")
-            
-            st.markdown("Run DESeq on the dataset from previous class. Run comparisons for both knockout conditions (ie. PA versus NSD1KO, and PA versus NSD12DKO)")
-            st.markdown("#### From previous class")
-            st.code("""
-            fc <- read.table("~/Documents/HGEN_663/extra/lec5/ex2_featureCounts.txt",header=1)
-
-            df <- fc %>% 
-            dplyr::select(-c(2:6)) %>% 
-            tibble::column_to_rownames("Geneid")
-            mat <- df %>% as.matrix()
-            metadata <- data.frame(kind=colnames(mat))
-            metadata$condition <- "PA"
-            metadata[3:4,"condition"] <- "NSD1KO"
-            metadata[5:6,"condition"] <- "NSD12DKO"
-            metadata <- tibble::column_to_rownames(metadata,"kind")
-            dds <- DESeqDataSetFromMatrix(countData = mat,
-                                        colData = metadata,
-                                        design = ~condition)
-            """, language="r")
-
-            st.markdown("#### Run DESeq")
-            st.code("""
-            # run deseq2
-            dds <- DESeq(dds)
-
-            # check which comparisons can be made
-            resultsNames(dds)
-
-            # results output
-            res <- dds %>%
-            results(contrast = c('condition', 'NSD1KO', 'PA'))
-            """, language="r")
-
-            st.markdown("#### Run dispersion analysis. Does the DESeq model have a good fit to the data?")
-            st.code("""
-            plotDispEsts(dds)
-            """, language="r")
-
-            st.markdown("#### Volcano plot")
-            st.code("""
-            # use LFC shrinkage
-            resLFC <- lfcShrink(dds,contrast=c('condition',test_samp,control_samp),type="ashr")
-            volc(resLFC, 'log2FoldChange', 'padj', 'Shrunken')
-            """, language="r")
-
-            st.markdown("#### Pathway analysis")
-            st.markdown("Do pathway analysis for both NSD1KO and NSD12DKO. Do the overrepresented pathways differ?")
-            st.code("""
-            # dataframe 
-            rd <- res %>%
-                data.frame() %>%
-                na.omit() %>%
-                rownames_to_column('gene') %>%
-                mutate(gene = sub('\\..*', '', gene))
-                # pathway analysis
-
-            g <- gost()
-            """, language="r")
-
-            st.markdown("#### GSEA")
-            st.markdown("Run GSEA and look at the top hit for each condition compared to parental.")
 
     st.divider()
