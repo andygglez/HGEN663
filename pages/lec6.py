@@ -113,28 +113,28 @@ with col2:
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
-            st.markdown("#### Grouping")
-            st.markdown("Before delving further, let’s make sure the samples we’re comparing for DE make sense with a simple PCA")
+    # with st.container(border=True):
+    #         st.markdown("#### Grouping")
+    #         st.markdown("Before delving further, let’s make sure the samples we’re comparing for DE make sense with a simple PCA")
             
-            st.markdown("#### PCA")
-            st.code("""
-            rld <- rlog(dds, blind = F)
-            pd <- plotPCA(rld, intgroup = "condition", ntop = 500, returnData = T)
+    #         st.markdown("#### PCA")
+    #         st.code("""
+    #         rld <- rlog(dds, blind = F)
+    #         pd <- plotPCA(rld, intgroup = "condition", ntop = 500, returnData = T)
 
-            data.frame(extra) %>%
-            rownames_to_column('name') %>% 
-            merge(pd) %>%
-            ggplot(aes(x = PC1, y = PC2)) +
-            geom_point(aes(color = condition)) +
-            geom_text(aes(label = name)) +
-            labs(x = sprintf('PC1: %.1f%% variance', 100 * attr(pd, 'percentVar')[1]),
-                y = sprintf('PC2: %.1f%% variance', 100 * attr(pd, 'percentVar')[2])) +
-            coord_fixed()
-            """, language="r")
-            st.image("images/lec6.PCA.plot.png")
+    #         data.frame(extra) %>%
+    #         rownames_to_column('name') %>% 
+    #         merge(pd) %>%
+    #         ggplot(aes(x = PC1, y = PC2)) +
+    #         geom_point(aes(color = condition)) +
+    #         geom_text(aes(label = name)) +
+    #         labs(x = sprintf('PC1: %.1f%% variance', 100 * attr(pd, 'percentVar')[1]),
+    #             y = sprintf('PC2: %.1f%% variance', 100 * attr(pd, 'percentVar')[2])) +
+    #         coord_fixed()
+    #         """, language="r")
+    #         st.image("images/lec6.PCA.plot.png")
 
-    st.divider()
+    # st.divider()
     #############################################################################################
 
     # with st.container(border=True):
@@ -152,8 +152,8 @@ with col2:
     #         res.sa <- results(dds)
     #         """, language="r")
 
-    st.divider()
-    #############################################################################################
+    # st.divider()
+    # #############################################################################################
 
     with st.container(border=True):
             st.markdown("### Part 2")
@@ -206,7 +206,6 @@ with col2:
     with st.container(border=True):
             st.markdown("#### Pathway Overrepresentation Analysis")
             
-            st.markdown("")
             st.code("""
             rd <- data.frame(res) %>%
                 na.omit() %>%
