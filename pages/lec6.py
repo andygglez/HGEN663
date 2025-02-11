@@ -43,6 +43,9 @@ with col2:
             # create DESeq object
             dds <- DESeqDataSetFromMatrix(countData = cts, colData = coldata, design = ~condition)
 
+            keep <- rowSums(counts(dds)) >= 10
+            dds <- dds[keep,]
+
             # what samples are we working with?
             coldata
             """, language="r")
@@ -51,13 +54,13 @@ with col2:
             st.markdown("#### Run analysis")
             # st.markdown("How does normalization show up on the MA plot?")
             st.code("""
+            dds$condition <- relevel(dds$condition, ref="ctrl") # Very important step
             dds <- DESeq(dds)
 
             res <- results(dds)
             head(res)
             """, language="r")
             st.image("images/lec6.get.results.png")
-
 
             st.markdown("#### Shrink fold change estimate")
             st.code("""
@@ -176,6 +179,8 @@ with col2:
 
             # output all results
             res <- results(dds)
+            resLFC <- lfcShrink(dds, coef = 2, type = "apeglm", res = res)
+
             """, language="r")
 
             # st.markdown("#### DE")
@@ -207,7 +212,7 @@ with col2:
             st.markdown("#### Pathway Overrepresentation Analysis")
             
             st.code("""
-            rd <- data.frame(res) %>%
+            rd <- data.frame(resLFC) %>%
                 na.omit() %>%
                 rownames_to_column('gene') %>%
                 mutate(gene = sub('\\\..*', '', gene)) 
@@ -245,9 +250,10 @@ with col2:
             s <- rd %>% 
                 mutate(symb = e2s[gene]) %>%
                 na.omit() %>% 
-                group_by(symb) %>%
-                summarise(stat = mean(stat)) %>%
+                group_by(symb) %>% 
+                select(c("symb", "log2FoldChange")) %>% 
                 deframe()
+                s <- s[!duplicated(names(s))]
 
             # pathways
             p <- msigdbr(species = "Homo sapiens", category = "H") %>%
@@ -269,8 +275,8 @@ with col2:
 
             st.markdown("#### Top hit")
             st.code("""
-            plotEnrichment(p[[arrange(r, padj)$pathway[1]]], s) +
-                ggtitle(arrange(r, padj)$pathway[1])
+            plotEnrichment(p[[arrange(r, padj)$pathway[5]]], s) +
+                ggtitle(arrange(r, padj)$pathway[5])
             """, language="r")
             st.image("images/lec6.GSEA.plot.png")
 
