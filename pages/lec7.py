@@ -35,8 +35,8 @@ with col2:
         """, language="bash")
         st.markdown("Apply `stringtie` without and without reference annotations")
         st.code("""
-        stringtie --rf -o guided/ct1.gtf ${data}/ct1.bam
-        stringtie --rf -G gencode.chr6.gtf -o denovo/ct1.gtf ${data}/ct1.bam
+        stringtie --rf -o denovo/ct1.gtf ${data}/ct1.bam
+        stringtie --rf -G gencode.chr6.gtf -o guided/ct1.gtf ${data}/ct1.bam
         """, language="bash")
         st.markdown("Combine sample-specific outputs")
         st.code("""
