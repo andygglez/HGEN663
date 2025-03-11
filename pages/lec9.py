@@ -344,25 +344,23 @@ with col2:
         st.markdown("#### Plot Individual samples")
         st.markdown("See above for the parameters used for ggplot()")
         st.code("""
-        # Replace `?` with the number for gene body
-        reg <- gg$`?`
+        ### look at gene body ###
+        # Look at a particular type of CpG sites
+        reg <- gg$`???`
         reg.name <- "gene body"
 
         # Merge methylation with expression data
-        dat.reg <- reshape2::melt(mat.meth.ok[rownames(mat.meth.ok) %in% reg,],
-                        varnames = c("probe","samples"), value.name = "beta") %>%
-            left_join(., dict, by = "probe") %>%
-            left_join(., reshape2::melt(mat.exp.ok,varnames=c("gene","samples")),
-                        by = c("gene","samples"))
+        dat.reg <-  %>%
+        left_join() %>%
+        left_join()
 
         # Get mean methylation level of all probes associated with each gene
         samp <- "NSD1m_6"
-        dat.plt <- dat.reg[dat.reg$samples == samp,] %>%
-            group_by(gene) %>%
-            summarise(beta = mean(beta), expr = mean(value))
+        dat.plt <- dat.reg[] %>%
+        group_by(gene) %>%
+        summarise(beta = , expr =)
 
-        smoothScatter(x = dat.plt$expr, y = dat.plt$beta, xlab = "Expression",
-                    ylab = "Methylation", main = paste0(reg.name," of ",samp))
+        smoothScatter()
         """, language="r")
 
         st.markdown("What are your conclusions?")
@@ -371,19 +369,13 @@ with col2:
 
         st.code("""
         # Aggregate samples within conditions by taking the mean
-        dat.wt <- dat.reg[grepl("noNSD1",dat.reg$samples),] %>%
-            group_by(gene) %>%
-            summarise(beta = mean(beta), expr = mean(value))
-        dat.mt <- dat.reg[!grepl("noNSD1",dat.reg$samples),] %>%
-            group_by(gene) %>%
-            summarise(beta = mean(beta), expr = mean(value))
-        dat.all <- dat.reg %>%
-            group_by(gene) %>%
-            summarise(beta = mean(beta), expr = mean(value))
+        dat.wt
+        dat.mt
+        dat.all
         
         # Complete the lines below:
-        smoothScatter(x = , y = , xlab = , ylab = , main = )
-        smoothScatter(x = , y = , xlab = , ylab = , main = )
+        smoothScatter( )
+        smoothScatter( )
         """, language="r")
         
     st.divider()
