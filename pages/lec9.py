@@ -24,7 +24,6 @@ with col2:
         st.code("""
         module load apptainer
         singularity run $data/dnmtools.sif diff -o chr3.methdiff ${data}/EpiLC.chr3.meth ${data}/GSC.chr3.meth
-        cp $data/DMR* .
         """, language='bash')
 
         st.markdown("Identify HMRs with `hmr`. Do the same for EpiLC")
@@ -35,6 +34,7 @@ with col2:
         st.markdown("Call DMRs usign `dmr`")
         st.code("""
         singularity run $data/dnmtools.sif dmr chr3.methdiff ${data}/EpiLC.chr3.hmr GSC.chr3.hmr ${data}/DMR_EpiLC_lt_GSC.bed ${data}/DMR_GSC_lt_EpiLC.bed
+        cp $data/DMR* .
         """, language='bash')
 
         st.markdown("Determine PMDs with `pmd`. Do the same for EpiLC")
