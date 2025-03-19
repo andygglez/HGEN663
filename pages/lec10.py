@@ -270,3 +270,41 @@ with col2:
         st.image("images/lec10.correlation.png")
 
     st.divider()
+
+    ##############################################################################
+    with st.container(border=True):
+        st.markdown("#### Your Turn!!!")
+
+        st.markdown("""
+        Look at the folder :blue[${data}/activity] and download the files. The students will pair up in teams of two
+        and each team will analyze the distribution of a mark on lowly and highly expressed genes using `deepTools` commands
+        computeMatrix and plotHeatmap.
+
+        Draw conclusions and debate!
+        """)
+        
+        st.markdown("""
+        Some technical details:
+
+        - Create just one image to analyze both conditions and both groups of genes (lowly and highly expressed genes)
+        - Use a bin size of 250 bp
+        - Specify a region upstream the gene of 4500 bp
+        - Specify a region downstream the gene of 4500 bp
+        - Scale the genic regions to 6000 bp using the `scale-regions` mode
+        - Label the samples you use
+        - Provide a title for the plot
+        - Label the regions you are using (low and high expression gene groups)
+
+        Add the following parameters to `computeMatrix` command:
+
+            --missingDataAsZero --skipZeros -p "max/2"
+
+        Add the following parameters to `plotHeatmap` command:
+
+            --dpi 600 --perGroup --colorMap 'Reds'
+        """)
+
+        st.markdown("The plots should look like these: (This is a random example from the web)")
+        st.image("images/lec10.example.png")
+
+    st.divider()
