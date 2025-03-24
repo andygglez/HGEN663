@@ -47,7 +47,7 @@ with col2:
 
             cat *-idr.peaks.txt | sort -k1,1 -k2,2n | bedtools merge | tee merged.bed | wc -l
 
-            awk 'OFS="  " {print $1"."$2"."$3, $1, $2, $3, "."}' merged.bed > merged.saf
+            awk 'OFS="\t" {print $1"."$2"."$3, $1, $2, $3, "."}' merged.bed > merged.saf
             """, language="bash")
 
             st.markdown("Run featureCounts")
@@ -67,6 +67,7 @@ with col2:
             
             st.markdown("Aggregate signal centered on ATAC-seq peaks using computeMatrix")
             st.code("""
+            module load apptainer
             singularity exec ${data}/deeptools.sif \\
                         computeMatrix reference-point -R $data/xie2022.open_peaks.bed \\
                         -S ${data}/mut_rep1.cpm.bw ${data}/mut_rep2.cpm.bw ${data}/rescue_rep1.cpm.bw ${data}/rescue_rep2.cpm.bw \\
