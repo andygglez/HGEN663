@@ -47,7 +47,7 @@ with col2:
 
             cat *-idr.peaks.txt | sort -k1,1 -k2,2n | bedtools merge | tee merged.bed | wc -l
 
-            awk 'OFS="\t" {print $1"."$2"."$3, $1, $2, $3, "."}' merged.bed > merged.saf
+            awk 'OFS="\\t" {print $1"."$2"."$3, $1, $2, $3, "."}' merged.bed > merged.saf
             """, language="bash")
 
             st.markdown("Run featureCounts")
