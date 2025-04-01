@@ -8,9 +8,9 @@ with col2:
     #############################################################################################
 
     with st.container(border=True):
-            st.markdown("#### Copy the files for today's class from /home/hgen_share/lec12")
+            st.markdown("#### Look at the files for today's class from /project/60006/hgen_share/lec12")
             
-            st.markdown("Set up directory and copy over files")
+            st.code("data=/project/60006/hgen_share/lec12", language="bash")
         
     st.divider()
     #############################################################################################
@@ -20,23 +20,17 @@ with col2:
             
             st.markdown("Check out the first few lines of the file")
             st.code("""
-            zcat NPC_1.chr19.pairs.gz | head | column -t
+            zcat ${data}/NPC_1.chr19.pairs.gz | head | column -t
             """, language="bash")
 
-            st.markdown("Set up environment")
+            st.markdown("Create matrix from the pairix-indexed and sorted file with cooler cload pairs. You can cancel with `Ctrl + C` because this will take a while")
             st.code("""
-            export PATH="/home/hgen_share/Anaconda/bin:$PATH"
-            export PATH="/home/hgen_share/Anaconda/envs/chip_seq_V3/bin:$PATH"
-            """, language="bash")
-
-            st.markdown("Create matrix from the pairix-indexed and sorted file with cooler cload pairix. You can cancel with `Ctrl + C` because this will take a while")
-            st.code("""
-            cooler cload pairix mm10.chr19.size:10000 NPC_1.chr19.pairs.gz NPC_1.chr19.cool
+            cooler cload pairs --assembly mm10 -c1 2 -p1 3 -c2 4 -p2 5 ${data}/mm10.chrom.sizes:10000 ${data}/NPC_1.chr19.pairs.gz NPC_1.chr19.cool
             """, language="bash")
 
             st.markdown("Examine the output file's metadata using `cooler info`")
             st.code("""
-            cooler info NPC_1.chr19.cool 
+            cooler info NPC_1.chr19.cool
             """, language="bash")
 
             st.markdown("Perform matrix balancing through `cooler balance`")
@@ -84,7 +78,6 @@ with col2:
             st.code("""
             head NPC_1.chr19.cis.tsv | column -t
             """, language="bash")
-            st.markdown("Now compute the expected value for trans matrices. See [cooltools](https://cooltools.readthedocs.io/en/latest/cli.html#cooltools-expected-trans)")
 
     st.divider()
     #############################################################################################
@@ -94,15 +87,15 @@ with col2:
             
             st.markdown("Compute the first few eigenvectors using `cooltools call-compartments` with GC content as the reference for sign-flipping")
             st.code("""
-            cooltools eigs-cis --n-eigs 3 -o NPC_1.chr19 --phasing-track 100000.bg NPC_1.chr19.mcool::/resolutions/100000
+            cooltools eigs-cis --n-eigs 3 -o NPC_1.chr19 --phasing-track ${data}/100000.gc NPC_1.chr19.mcool::/resolutions/100000
             """, language="bash")
 
-            st.markdown("Now compute the first few eigenvectors for trans matrices. See [cooltools](https://cooltools.readthedocs.io/en/latest/cli.html#cooltools-expected-trans)")
-            st.markdown("Look at the outputs")
-            st.code("""
-            cat NPC_1.chr19.cis.lam.txt
-            head NPC_1.chr19.cis.vecs.tsv
-            """, language="bash")
+            # st.markdown("Now compute the first few eigenvectors for trans matrices. See [cooltools](https://cooltools.readthedocs.io/en/latest/cli.html#cooltools-expected-trans)")
+            # st.markdown("Look at the outputs")
+            # st.code("""
+            # cat NPC_1.chr19.cis.lam.txt
+            # head NPC_1.chr19.cis.vecs.tsv
+            # """, language="bash")
 
     st.divider()
     #############################################################################################
@@ -110,276 +103,283 @@ with col2:
     with st.container(border=True):
             st.markdown("#### Extra: Visualize eigenvectors using a saddle-plot")
             
-            st.markdown("Use `python` version of cooltools")
-            st.code("""
-            # import standard python libraries
-            import numpy as np
-            import matplotlib.pyplot as plt
-            import pandas as pd
-            import os, subprocess
-            import cooler
-            import cooltools.lib.plotting
-            import cooltools
+            # st.markdown("Use `python` version of cooltools")
+            # st.code("""
+            # # import standard python libraries
+            # import numpy as np
+            # import matplotlib.pyplot as plt
+            # import pandas as pd
+            # import os, subprocess
+            # import cooler
+            # import cooltools.lib.plotting
+            # import cooltools
 
-            # read in cooler
-            clr = cooler.Cooler('/lustre06/project/6007495/padilr1/projects/HGEN663_W21/pub/lec12_extra/NPC.mcool::/resolutions/100000')
-            # generate dataframe of gc coverage in your organism, here it is mm10 or mouse
-            import bioframe
-            bins = clr.bins()[:]
-            mm10_genome = bioframe.load_fasta('/lustre06/project/6007495/padilr1/pipelines/hic/dcHiC/demo/dcHiC_demo/ESC_NPC_CN_100Kb/mm10_100000_goldenpathData/mm10.fa');
-            gc_cov = bioframe.frac_gc(bins[['chrom', 'start', 'end']], mm10_genome)
-            # gc_cov.to_csv('mm10_gc_cov_100kb.tsv',index=False,sep='\t') = this script can export the gc coverage dataframe into a csv file
+            # # read in cooler
+            # clr = cooler.Cooler('/lustre06/project/6007495/padilr1/projects/HGEN663_W21/pub/lec12_extra/NPC.mcool::/resolutions/100000')
+            # # generate dataframe of gc coverage in your organism, here it is mm10 or mouse
+            # import bioframe
+            # bins = clr.bins()[:]
+            # mm10_genome = bioframe.load_fasta('/lustre06/project/6007495/padilr1/pipelines/hic/dcHiC/demo/dcHiC_demo/ESC_NPC_CN_100Kb/mm10_100000_goldenpathData/mm10.fa');
+            # gc_cov = bioframe.frac_gc(bins[['chrom', 'start', 'end']], mm10_genome)
+            # # gc_cov.to_csv('mm10_gc_cov_100kb.tsv',index=False,sep='\t') = this script can export the gc coverage dataframe into a csv file
 
-            ## Cooltools also allows a view to be passed for eigendecomposition to limit to a certain set of regions. The following code creates the simplest view, of the two chromosomes in this cooler
-            view_df = pd.DataFrame({'chrom': clr.chromnames,
-                                    'start': 0,
-                                    'end': clr.chromsizes.values,
-                                    'name': clr.chromnames}
-                                )
-            ## obtain first 3 eigenvectors
-            cis_eigs = cooltools.eigs_cis(
-                                    clr,
-                                    gc_cov,
-                                    view_df=view_df,
-                                    n_eigs=3,
-                                    )
+            # ## Cooltools also allows a view to be passed for eigendecomposition to limit to a certain set of regions. The following code creates the simplest view, of the two chromosomes in this cooler
+            # view_df = pd.DataFrame({'chrom': clr.chromnames,
+            #                         'start': 0,
+            #                         'end': clr.chromsizes.values,
+            #                         'name': clr.chromnames}
+            #                     )
+            # ## obtain first 3 eigenvectors
+            # cis_eigs = cooltools.eigs_cis(
+            #                         clr,
+            #                         gc_cov,
+            #                         view_df=view_df,
+            #                         n_eigs=3,
+            #                         )
 
-            # cis_eigs[0] returns eigenvalues, here we focus on eigenvectors
-            eigenvector_track = cis_eigs[1][['chrom','start','end','E1']]
-            # calculate the expected cis values
-            cvd = cooltools.expected_cis(
-                    clr=clr,
-                    view_df=view_df,
-            )
-            #
-            Q_LO = 0.025 # ignore 2.5% of genomic bins with the lowest E1 values
-            Q_HI = 0.975 # ignore 2.5% of genomic bins with the highest E1 values
-            N_GROUPS = 38 # divide remaining 95% of the genome into 38 equisized groups, 2.5% each
+            # # cis_eigs[0] returns eigenvalues, here we focus on eigenvectors
+            # eigenvector_track = cis_eigs[1][['chrom','start','end','E1']]
+            # # calculate the expected cis values
+            # cvd = cooltools.expected_cis(
+            #         clr=clr,
+            #         view_df=view_df,
+            # )
+            # #
+            # Q_LO = 0.025 # ignore 2.5% of genomic bins with the lowest E1 values
+            # Q_HI = 0.975 # ignore 2.5% of genomic bins with the highest E1 values
+            # N_GROUPS = 38 # divide remaining 95% of the genome into 38 equisized groups, 2.5% each
 
-            # saddle then plots two matrices: one with the sum for each pair of categories, interaction_sum, and the other with the number of bins for each pair of categories, interaction_count. Typically, interaction_sum/interaction_count is visualized
-            interaction_sum, interaction_count =  cooltools.saddle(
-                    clr,
-                    cvd,
-                    eigenvector_track,
-                    'cis',
-                    n_bins=N_GROUPS,
-                    qrange=(Q_LO,Q_HI),
-                    view_df=view_df
-            )
+            # # saddle then plots two matrices: one with the sum for each pair of categories, interaction_sum, and the other with the number of bins for each pair of categories, interaction_count. Typically, interaction_sum/interaction_count is visualized
+            # interaction_sum, interaction_count =  cooltools.saddle(
+            #         clr,
+            #         cvd,
+            #         eigenvector_track,
+            #         'cis',
+            #         n_bins=N_GROUPS,
+            #         qrange=(Q_LO,Q_HI),
+            #         view_df=view_df
+            # )
 
-            # parameters and functions required to plot the saddle plot
-            import warnings
-            from cytoolz import merge
+            # # parameters and functions required to plot the saddle plot
+            # import warnings
+            # from cytoolz import merge
 
-            def saddleplot(
-                track,
-                saddledata,
-                n_bins,
-                vrange=None,
-                qrange=(0.0, 1.0),
-                cmap="coolwarm",
-                scale="log",
-                vmin=0.5,
-                vmax=2,
-                color=None,
-                title=None,
-                xlabel=None,
-                ylabel=None,
-                clabel=None,
-                fig=None,
-                fig_kws=None,
-                heatmap_kws=None,
-                margin_kws=None,
-                cbar_kws=None,
-                subplot_spec=None,
-            ):
-                from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
-                from matplotlib.colors import Normalize, LogNorm
-                from matplotlib import ticker
-                import matplotlib.pyplot as plt
-                class MinOneMaxFormatter(ticker.LogFormatter):
-                    def set_locs(self, locs=None):
-                        self._sublabels = set([vmin % 10 * 10, vmax % 10, 1])
+            # def saddleplot(
+            #     track,
+            #     saddledata,
+            #     n_bins,
+            #     vrange=None,
+            #     qrange=(0.0, 1.0),
+            #     cmap="coolwarm",
+            #     scale="log",
+            #     vmin=0.5,
+            #     vmax=2,
+            #     color=None,
+            #     title=None,
+            #     xlabel=None,
+            #     ylabel=None,
+            #     clabel=None,
+            #     fig=None,
+            #     fig_kws=None,
+            #     heatmap_kws=None,
+            #     margin_kws=None,
+            #     cbar_kws=None,
+            #     subplot_spec=None,
+            # ):
+            #     from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+            #     from matplotlib.colors import Normalize, LogNorm
+            #     from matplotlib import ticker
+            #     import matplotlib.pyplot as plt
+            #     class MinOneMaxFormatter(ticker.LogFormatter):
+            #         def set_locs(self, locs=None):
+            #             self._sublabels = set([vmin % 10 * 10, vmax % 10, 1])
                         
-                    def __call__(self, x, pos=None):
-                        if x not in [vmin, 1, vmax]:
-                            return ""
-                        else:
-                            return "{x:g}".format(x=x)
+            #         def __call__(self, x, pos=None):
+            #             if x not in [vmin, 1, vmax]:
+            #                 return ""
+            #             else:
+            #                 return "{x:g}".format(x=x)
                 
-                track_value_col = track.columns[3]
-                track_values = track[track_value_col].values
+            #     track_value_col = track.columns[3]
+            #     track_values = track[track_value_col].values
                 
-                digitized_track, binedges = cooltools.digitize(
-                    track, n_bins, vrange=vrange, qrange=qrange
-                )
-                x = digitized_track[digitized_track.columns[3]].values.astype(int).copy()
-                x = x[(x > -1) & (x < len(binedges) + 1)]
+            #     digitized_track, binedges = cooltools.digitize(
+            #         track, n_bins, vrange=vrange, qrange=qrange
+            #     )
+            #     x = digitized_track[digitized_track.columns[3]].values.astype(int).copy()
+            #     x = x[(x > -1) & (x < len(binedges) + 1)]
                 
-                groupmean = track[track.columns[3]].groupby(digitized_track[digitized_track.columns[3]]).mean()
+            #     groupmean = track[track.columns[3]].groupby(digitized_track[digitized_track.columns[3]]).mean()
                 
-                if qrange is not None:
-                    lo, hi = qrange
-                    binedges = np.linspace(lo, hi, n_bins + 1)
+            #     if qrange is not None:
+            #         lo, hi = qrange
+            #         binedges = np.linspace(lo, hi, n_bins + 1)
                 
-                n = saddledata.shape[0]
-                X, Y = np.meshgrid(binedges, binedges)
-                C = saddledata
-                if (n - n_bins) == 2:
-                    C = C[1:-1, 1:-1]
-                    groupmean = groupmean[1:-1]
+            #     n = saddledata.shape[0]
+            #     X, Y = np.meshgrid(binedges, binedges)
+            #     C = saddledata
+            #     if (n - n_bins) == 2:
+            #         C = C[1:-1, 1:-1]
+            #         groupmean = groupmean[1:-1]
                 
-                if subplot_spec is not None:
-                    GridSpec = partial(GridSpecFromSubplotSpec, subplot_spec=subplot_spec)
-                grid = {}
-                gs = GridSpec(
-                    nrows=3,
-                    ncols=3,
-                    width_ratios=[0.2, 1, 0.1],
-                    height_ratios=[0.2, 1, 0.1],
-                    wspace=0.05,
-                    hspace=0.05,
-                )
+            #     if subplot_spec is not None:
+            #         GridSpec = partial(GridSpecFromSubplotSpec, subplot_spec=subplot_spec)
+            #     grid = {}
+            #     gs = GridSpec(
+            #         nrows=3,
+            #         ncols=3,
+            #         width_ratios=[0.2, 1, 0.1],
+            #         height_ratios=[0.2, 1, 0.1],
+            #         wspace=0.05,
+            #         hspace=0.05,
+            #     )
                 
-                if fig is None:
-                    fig_kws_default = dict(figsize=(5, 5))
-                    fig_kws = merge(fig_kws_default, fig_kws if fig_kws is not None else {})
-                    fig = plt.figure(**fig_kws)
+            #     if fig is None:
+            #         fig_kws_default = dict(figsize=(5, 5))
+            #         fig_kws = merge(fig_kws_default, fig_kws if fig_kws is not None else {})
+            #         fig = plt.figure(**fig_kws)
                     
-                if scale == "log":
-                    norm = LogNorm(vmin=vmin, vmax=vmax)
-                elif scale == "linear":
-                    norm = Normalize(vmin=vmin, vmax=vmax)
-                else:
-                    raise ValueError("Only linear and log color scaling is supported")
-                grid["ax_heatmap"] = ax = plt.subplot(gs[4])
-                heatmap_kws_default = dict(cmap="coolwarm", rasterized=True)
-                heatmap_kws = merge(
-                    heatmap_kws_default, heatmap_kws if heatmap_kws is not None else {}
-                )
-                img = ax.pcolormesh(X, Y, C, norm=norm, **heatmap_kws)
-                plt.gca().yaxis.set_visible(False)
+            #     if scale == "log":
+            #         norm = LogNorm(vmin=vmin, vmax=vmax)
+            #     elif scale == "linear":
+            #         norm = Normalize(vmin=vmin, vmax=vmax)
+            #     else:
+            #         raise ValueError("Only linear and log color scaling is supported")
+            #     grid["ax_heatmap"] = ax = plt.subplot(gs[4])
+            #     heatmap_kws_default = dict(cmap="coolwarm", rasterized=True)
+            #     heatmap_kws = merge(
+            #         heatmap_kws_default, heatmap_kws if heatmap_kws is not None else {}
+            #     )
+            #     img = ax.pcolormesh(X, Y, C, norm=norm, **heatmap_kws)
+            #     plt.gca().yaxis.set_visible(False)
                 
-                margin_kws_default = dict(edgecolor="k", facecolor=color, linewidth=1)
-                margin_kws = merge(margin_kws_default, margin_kws if margin_kws is not None else {})
-                grid["ax_margin_y"] = plt.subplot(gs[3], sharey=grid["ax_heatmap"])
+            #     margin_kws_default = dict(edgecolor="k", facecolor=color, linewidth=1)
+            #     margin_kws = merge(margin_kws_default, margin_kws if margin_kws is not None else {})
+            #     grid["ax_margin_y"] = plt.subplot(gs[3], sharey=grid["ax_heatmap"])
                 
-                plt.barh(
-                    binedges, height=1/len(binedges), width=groupmean, align="edge", **margin_kws
-                )
+            #     plt.barh(
+            #         binedges, height=1/len(binedges), width=groupmean, align="edge", **margin_kws
+            #     )
                 
-                plt.xlim(plt.xlim()[1], plt.xlim()[0])  # fliplr
-                plt.ylim(hi, lo)
-                plt.gca().spines["top"].set_visible(False)
-                plt.gca().spines["bottom"].set_visible(False)
-                plt.gca().spines["left"].set_visible(False)
-                plt.gca().xaxis.set_visible(False)
-                grid["ax_margin_x"] = plt.subplot(gs[1], sharex=grid["ax_heatmap"])
+            #     plt.xlim(plt.xlim()[1], plt.xlim()[0])  # fliplr
+            #     plt.ylim(hi, lo)
+            #     plt.gca().spines["top"].set_visible(False)
+            #     plt.gca().spines["bottom"].set_visible(False)
+            #     plt.gca().spines["left"].set_visible(False)
+            #     plt.gca().xaxis.set_visible(False)
+            #     grid["ax_margin_x"] = plt.subplot(gs[1], sharex=grid["ax_heatmap"])
                 
-                plt.bar(
-                    binedges, width=1/len(binedges), height=groupmean, align="edge", **margin_kws
-                )
+            #     plt.bar(
+            #         binedges, width=1/len(binedges), height=groupmean, align="edge", **margin_kws
+            #     )
                 
-                plt.xlim(lo, hi)
-                plt.gca().spines["top"].set_visible(False)
-                plt.gca().spines["right"].set_visible(False)
-                plt.gca().spines["left"].set_visible(False)
-                plt.gca().xaxis.set_visible(False)
-                plt.gca().yaxis.set_visible(False)
+            #     plt.xlim(lo, hi)
+            #     plt.gca().spines["top"].set_visible(False)
+            #     plt.gca().spines["right"].set_visible(False)
+            #     plt.gca().spines["left"].set_visible(False)
+            #     plt.gca().xaxis.set_visible(False)
+            #     plt.gca().yaxis.set_visible(False)
                 
-                grid["ax_cbar"] = plt.subplot(gs[5])
-                cbar_kws_default = dict(fraction=0.8, label=clabel or "")
-                cbar_kws = merge(cbar_kws_default, cbar_kws if cbar_kws is not None else {})
-                if scale == "linear" and vmin is not None and vmax is not None:
-                    grid["ax_cbar"] = cb = plt.colorbar(img, **cbar_kws)
-                    decimal = 10
-                    nsegments = 5
-                    cd_ticks = np.trunc(np.linspace(vmin, vmax, nsegments) * decimal) / decimal
-                    cb.set_ticks(cd_ticks)
-                else:
-                    print('cbar')
+            #     grid["ax_cbar"] = plt.subplot(gs[5])
+            #     cbar_kws_default = dict(fraction=0.8, label=clabel or "")
+            #     cbar_kws = merge(cbar_kws_default, cbar_kws if cbar_kws is not None else {})
+            #     if scale == "linear" and vmin is not None and vmax is not None:
+            #         grid["ax_cbar"] = cb = plt.colorbar(img, **cbar_kws)
+            #         decimal = 10
+            #         nsegments = 5
+            #         cd_ticks = np.trunc(np.linspace(vmin, vmax, nsegments) * decimal) / decimal
+            #         cb.set_ticks(cd_ticks)
+            #     else:
+            #         print('cbar')
                     
-                    cb = plt.colorbar(img, format=MinOneMaxFormatter(), cax=grid["ax_cbar"], **cbar_kws)
-                    cb.ax.yaxis.set_minor_formatter(MinOneMaxFormatter())
-                grid["ax_heatmap"].set_xlim(lo, hi)
-                grid["ax_heatmap"].set_ylim(hi, lo)
-                grid['ax_heatmap'].grid(False)
-                if title is not None:
-                    grid["ax_margin_x"].set_title(title)
-                if xlabel is not None:
-                    grid["ax_heatmap"].set_xlabel(xlabel)
-                if ylabel is not None:
-                    grid["ax_margin_y"].set_ylabel(ylabel)
+            #         cb = plt.colorbar(img, format=MinOneMaxFormatter(), cax=grid["ax_cbar"], **cbar_kws)
+            #         cb.ax.yaxis.set_minor_formatter(MinOneMaxFormatter())
+            #     grid["ax_heatmap"].set_xlim(lo, hi)
+            #     grid["ax_heatmap"].set_ylim(hi, lo)
+            #     grid['ax_heatmap'].grid(False)
+            #     if title is not None:
+            #         grid["ax_margin_x"].set_title(title)
+            #     if xlabel is not None:
+            #         grid["ax_heatmap"].set_xlabel(xlabel)
+            #     if ylabel is not None:
+            #         grid["ax_margin_y"].set_ylabel(ylabel)
                 
-                return grid
+            #     return grid
 
-            ## finally, plot the saddle-plot
-            img = saddleplot(eigenvector_track,
-                    interaction_sum/interaction_count,
-                    N_GROUPS,
-                    qrange=(Q_LO,Q_HI),
-                    cbar_kws={'label':'average observed/expected contact frequency'}
-                    );
+            # ## finally, plot the saddle-plot
+            # img = saddleplot(eigenvector_track,
+            #         interaction_sum/interaction_count,
+            #         N_GROUPS,
+            #         qrange=(Q_LO,Q_HI),
+            #         cbar_kws={'label':'average observed/expected contact frequency'}
+            #         );
 
-            ## save figure
-            plt.savefig('/lustre06/project/6007495/padilr1/projects/HGEN663_W21/pub/lec12_extra/final_analysis/saddleplot/NPC.saddle.cis.100000.png')
-            """, language="python")
+            # ## save figure
+            # plt.savefig('/lustre06/project/6007495/padilr1/projects/HGEN663_W21/pub/lec12_extra/final_analysis/saddleplot/NPC.saddle.cis.100000.png')
+            # """, language="python")
+
+            st.markdown("In ${data}/create.saddle.plot.py we have the code to create a saddleplot. Inspect this file")
+            st.code("less ${data}/create.saddle.plot.py", language="bash")
+
+            st.code("python ${data}/create.saddle.plot.py", language="bash")
+
+            st.image("images/lec12.NPC.saddle.png")
 
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
-            st.markdown("#### Extra: Run differential compartment analysis")
+    # with st.container(border=True):
+    #         st.markdown("#### Extra: Run differential compartment analysis")
             
-            st.markdown("Differential compartment analysis using [dcHiC](https://github.com/ay-lab/dcHiC)")
-            st.code("""
-            ###                  STEP 1                  ###
-            ### Step 1: dcHiC will create the raw PC files for each chromosome. ###
+    #         st.markdown("Differential compartment analysis using [dcHiC](https://github.com/ay-lab/dcHiC)")
+    #         st.code("""
+    #         ###                  STEP 1                  ###
+    #         ### Step 1: dcHiC will create the raw PC files for each chromosome. ###
 
-            Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype cis --dirovwt T --cthread 2 --pthread 4
+    #         Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype cis --dirovwt T --cthread 2 --pthread 4
 
-            ###                  STEP 2                  ###
-            ### Step 2: dcHiC will select the best pc out of PC1 and PC2 for each chromosome 
-            ### by comparing each one against GC content and gene density through correlation.
+    #         ###                  STEP 2                  ###
+    #         ### Step 2: dcHiC will select the best pc out of PC1 and PC2 for each chromosome 
+    #         ### by comparing each one against GC content and gene density through correlation.
 
-            Rscript ../scripts/dchicf.r --file input.ES_NPC_CN.txt --pcatype select --dirovwt T --genome mm10 --cthread 8 --pthread 4 --gfolder /lustre06/project/6007495/padilr1/pipelines/hic/dcHiC/demo/dcHiC_demo/ESC_NPC_CN_100Kb/mm10_100000_goldenpathData
+    #         Rscript ../scripts/dchicf.r --file input.ES_NPC_CN.txt --pcatype select --dirovwt T --genome mm10 --cthread 8 --pthread 4 --gfolder /lustre06/project/6007495/padilr1/pipelines/hic/dcHiC/demo/dcHiC_demo/ESC_NPC_CN_100Kb/mm10_100000_goldenpathData
 
-            ###                  STEP 3                  ###
-            ### Step 3: dcHiC will use the selected PC and qunatile normalize them.
-            ### This will be followed by mahalanobis distance calculation and outlier detection.
-            ### If replicates are available, dcHiC will apply IHW (independent hypothesis weighting) to adjust the significance. 
-            ### This will create a directory "DifferentialResult" and few more subfolder. 
-            ### differential.intra_sample_group.pcOri.bedGraph shows the significance score for all the Hi-C bins.
-            ### differential.intra_sample_group.Filtered.pcOri.bedGraph shows the filtered (padj < 0.1) the Hi-C bins.
-            ### The differential.intra_sample_combined.*.bedGraph file shows the compartment scores and significance 
-            ### of each replicates, differential.intra_sample_group.*.bedGraph files are the subset of these.
-            ### *.pcOri.* are files with original pc values i.e. before quantile normalized values.
-            ### *.pcQnm.* are files with quantile normalized values. 
-            ### Note: All the differential compartment analysis is performed using *.pcQnm.* files. 
-            ### *.pcOri.* files are generated for vizualization purpose.
+    #         ###                  STEP 3                  ###
+    #         ### Step 3: dcHiC will use the selected PC and qunatile normalize them.
+    #         ### This will be followed by mahalanobis distance calculation and outlier detection.
+    #         ### If replicates are available, dcHiC will apply IHW (independent hypothesis weighting) to adjust the significance. 
+    #         ### This will create a directory "DifferentialResult" and few more subfolder. 
+    #         ### differential.intra_sample_group.pcOri.bedGraph shows the significance score for all the Hi-C bins.
+    #         ### differential.intra_sample_group.Filtered.pcOri.bedGraph shows the filtered (padj < 0.1) the Hi-C bins.
+    #         ### The differential.intra_sample_combined.*.bedGraph file shows the compartment scores and significance 
+    #         ### of each replicates, differential.intra_sample_group.*.bedGraph files are the subset of these.
+    #         ### *.pcOri.* are files with original pc values i.e. before quantile normalized values.
+    #         ### *.pcQnm.* are files with quantile normalized values. 
+    #         ### Note: All the differential compartment analysis is performed using *.pcQnm.* files. 
+    #         ### *.pcOri.* files are generated for vizualization purpose.
 
-            Rscript ../scripts/dchicf.r --file input.ES_NPC_CN.txt --pcatype analyze --dirovwt T --diffdir ES_NPC_100Kb
-
-
-            ###                  STEP 4                 ###
-            ### Step 6: dcHiC will generate the standalone IGV web page.
-            ### The step reqires "create_datauri" code provided within scripts directory.
-            ### Please create a soft-link to your ln -s ./scripts/create_datauri ~/.local/bin/
-
-            Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype viz --dirovwt T --diffdir ES_NPC_100Kb --genome mm10 --pcgroup pcOri
+    #         Rscript ../scripts/dchicf.r --file input.ES_NPC_CN.txt --pcatype analyze --dirovwt T --diffdir ES_NPC_100Kb
 
 
-            ###                  STEP 5              ###
-            ### Step 7: dcHiC will perform enrichment with the genes overlapping with the 
-            ### differential A-compartments in each sample. This step will generate a 
-            ### geneEnrichment directory under DifferentialResult/
-            ### Under geneEnrichment directory there will sub-directories named as *_geneEnrichment.
-            ### We recomment using the *_geneList.anchor.txt (Entrez IDs) file to perform the gene-enrichment using
-            ### https://toppgene.cchmc.org/enrichment.jsp .
+    #         ###                  STEP 4                 ###
+    #         ### Step 6: dcHiC will generate the standalone IGV web page.
+    #         ### The step reqires "create_datauri" code provided within scripts directory.
+    #         ### Please create a soft-link to your ln -s ./scripts/create_datauri ~/.local/bin/
+
+    #         Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype viz --dirovwt T --diffdir ES_NPC_100Kb --genome mm10 --pcgroup pcOri
 
 
-            Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype enrich --genome mm10 --diffdir ES_NPC_100Kb --exclA F --pcscore T --region anchor --pcgroup pcOri --gfolder mm10_100000_goldenpathData
-            """, language="bash")
+    #         ###                  STEP 5              ###
+    #         ### Step 7: dcHiC will perform enrichment with the genes overlapping with the 
+    #         ### differential A-compartments in each sample. This step will generate a 
+    #         ### geneEnrichment directory under DifferentialResult/
+    #         ### Under geneEnrichment directory there will sub-directories named as *_geneEnrichment.
+    #         ### We recomment using the *_geneList.anchor.txt (Entrez IDs) file to perform the gene-enrichment using
+    #         ### https://toppgene.cchmc.org/enrichment.jsp .
+
+
+    #         Rscript ../scripts/dchicf.r --file input.ES_NPC.txt --pcatype enrich --genome mm10 --diffdir ES_NPC_100Kb --exclA F --pcscore T --region anchor --pcgroup pcOri --gfolder mm10_100000_goldenpathData
+    #         """, language="bash")
 
     st.divider()
     #############################################################################################
@@ -400,46 +400,46 @@ with col2:
     st.divider()
     #############################################################################################
 
-    with st.container(border=True):
+    # with st.container(border=True):
 
-            st.markdown("#### Find dots on again the same matrix")
+    #         st.markdown("#### Find dots on again the same matrix")
 
-            st.markdown("Use the expected values computed before together with cooltools call-dots")
-            st.code("""
-            cooltools dots NPC_1.chr19.mcool::/resolutions/10000 NPC_1.chr19.cis.tsv -o NPC_1.chr19.dots -p 1
-            """, language="bash")
+    #         st.markdown("Use the expected values computed before together with cooltools call-dots")
+    #         st.code("""
+    #         cooltools dots NPC_1.chr19.mcool::/resolutions/10000 NPC_1.chr19.cis.tsv -o NPC_1.chr19.dots -p 1
+    #         """, language="bash")
 
-            st.markdown("Look at the outputs")
-            st.code("""
-            head NPC_1.chr19.dots
-            """, language="bash")
+    #         st.markdown("Look at the outputs")
+    #         st.code("""
+    #         head NPC_1.chr19.dots
+    #         """, language="bash")
 
-            st.markdown("Pile up the loops using coolpup.py")
-            st.code("""
-            cut -f 1-6 NPC_1.chr19.dots > NPC_1.chr19.dots.bedpe
+    #         st.markdown("Pile up the loops using coolpup.py")
+    #         st.code("""
+    #         cut -f 1-6 NPC_1.chr19.dots > NPC_1.chr19.dots.bedpe
 
-            coolpup.py NPC_1.chr19.mcool::/resolutions/10000 NPC_1.chr19.dots.bedpe \\
-                        --features_format bedpe \\
-                        --outname NPC.cis_10000.pileup.clpy --nproc 1 \\
-                        --expected /home/hgen_share/test/NPC_1.chr19.cis.tsv
-            """, language="bash")
+    #         coolpup.py NPC_1.chr19.mcool::/resolutions/10000 NPC_1.chr19.dots.bedpe \\
+    #                     --features_format bedpe \\
+    #                     --outname NPC.cis_10000.pileup.clpy --nproc 1 \\
+    #                     --expected NPC_1.chr19.cis.tsv
+    #         """, language="bash")
             
-            st.markdown("Plot the loop pile-up using `plotpup.py`")
-            st.code("""
-            plotpup.py --input_pups NPC.cis_10000.pileup.clpy --output NPC.cis_10000.pileup.png
-            """, language="bash")
+    #         st.markdown("Plot the loop pile-up using `plotpup.py`")
+    #         st.code("""
+    #         plotpup.py --input_pups NPC.cis_10000.pileup.clpy --output NPC.cis_10000.pileup.png
+    #         """, language="bash")
             
-            st.markdown("**Extra**: Perform differential loop analysis on union of loops using [pareidolia](https://github.com/koszullab/pareidolia)")
-            st.code("""
-            pareidolia -n 8 -b /lb/project/GRID/padilr1/projects/HGEN663/readpileup/union.dots.bedpe -k loops \\
-                        /lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_1.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_2.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_3.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_4.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_1.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_2.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_3.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_4.mcool::resolutions/10000 \\
-                        ESC,ESC,ESC,ESC,NPC,NPC,NPC,NPC \
-                        output.pareidolia.tsv
-            """, language="bash")
+    #         st.markdown("**Extra**: Perform differential loop analysis on union of loops using [pareidolia](https://github.com/koszullab/pareidolia)")
+    #         st.code("""
+    #         pareidolia -n 8 -b /lb/project/GRID/padilr1/projects/HGEN663/readpileup/union.dots.bedpe -k loops \\
+    #                     /lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_1.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_2.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_3.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/ESC_4.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_1.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_2.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_3.mcool::resolutions/10000,/lb/project/GRID/padilr1/projects/HGEN663/lec12_extra/NPC_4.mcool::resolutions/10000 \\
+    #                     ESC,ESC,ESC,ESC,NPC,NPC,NPC,NPC \
+    #                     output.pareidolia.tsv
+    #         """, language="bash")
             
-            st.markdown("Lastly, we can view the results of our HiC analysis in [HiGlass](http://206.12.101.70:8888/app)")
+    #         st.markdown("Lastly, we can view the results of our HiC analysis in [HiGlass](http://206.12.101.70:8888/app)")
 
-    st.divider()
+    # st.divider()
 
     st.markdown("#### Let's jump to R!!!")
 
