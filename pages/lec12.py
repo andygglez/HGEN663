@@ -437,9 +437,13 @@ with col2:
     #                     output.pareidolia.tsv
     #         """, language="bash")
             
-    #         st.markdown("Lastly, we can view the results of our HiC analysis in [HiGlass](http://206.12.101.70:8888/app)")
+    #         
 
-    # st.divider()
+
+    with st.container(border=True):
+        st.markdown("Lastly, we can view the results of our HiC analysis in [HiGlass](http://206.12.101.70:8888/app)")
+
+    st.divider()
 
     st.markdown("#### Let's jump to R!!!")
 
